@@ -22,27 +22,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-PARAMS=""
-AT=""
-COMMAND=""
-YEAR=""
-MONTH=""
-DAY=""
-REPOSITORY=""
-REPOSITORIES_ROOT=""
-DEFAULT_REPOSITORY=""
+ITEMS=()
 
 stup()
 {
   resolve_configuration_file
   parse_options "$@"
 
+  if [ -z "$COMMAND" ]; then
+    COMMAND="show"
+  fi
+
   if [ "$COMMAND" != "configure" ]; then
     ensure_configured
     load_configuration
   fi
 
-  parse_arguments $PARAMS
+  execute
 }
 
 ensure_configured()
@@ -74,10 +70,42 @@ hint()
 
 parse_options()
 {
-  while (( "$#" )); do
+  while [[ $# -gt 0 ]]; do
     case "$1" in
+      today|tomorrow|yesterday)
+        AT="$1"
+        shift
+        ;;
+      add)
+        COMMAND="add"
+        shift
+        ;;
+      configure)
+        COMMAND="configure"
+        shift
+        ;;
+      show)
+        COMMAND="show"
+        shift
+        ;;
       @|-@|--at)
         AT="$2"
+        shift 2
+        ;;
+      add-repository)
+        COMMAND="add_repository"
+        shift 1
+        ;;
+      set-repository-description)
+        COMMAND="set_repository_description"
+        shift 1
+        ;;
+      --repository-name)
+        REPOSITORY_NAME="$2"
+        shift 2
+        ;;
+      --repository-description)
+        REPOSITORY_DESCRIPTION="$2"
         shift 2
         ;;
       -r|--repository)
@@ -92,9 +120,12 @@ parse_options()
         REPOSITORY="$2"
         shift 2
         ;;
+      -i|--item)
+        ITEMS+=("$2")
+        shift 2
+        ;;
       --configure)
         COMMAND="configure"
-        configure
         shift
         ;;
       --) # end argument parsing
@@ -105,9 +136,9 @@ parse_options()
         echo "Error: Unsupported flag $1" >&2
         exit 1
         ;;
-      *) # preserve positional arguments
-        PARAMS="$PARAMS $1"
-        shift
+      *)
+        echo "Error: Unsupported command \"$1\"" >&2
+        exit 1
         ;;
     esac
   done
@@ -257,35 +288,6 @@ store_configuration()
   echo -e "repositories_root=$REPOSITORIES_ROOT\ndefault_repository=$DEFAULT_REPOSITORY\n" > $CONFIG_FILE
 }
 
-parse_arguments()
-{
-  case "$1" in
-    today|tomorrow|yesterday)
-      AT="$1"
-      shift
-      parse_arguments "$@"
-      ;;
-    add)
-      COMMAND="add"
-      shift
-      add_entry "$@"
-      ;;
-    configure)
-      COMMAND="configure"
-      shift
-      ;;
-    show)
-      COMMAND="show"
-      shift
-      show "$@"
-      ;;
-    *)
-      echo "Error: Unsupported command \"$1\"" >&2
-      exit 1
-      ;;
-  esac
-}
-
 resolve_date()
 {
   if [ ! -z "$AT" ]; then
@@ -341,7 +343,18 @@ add_entry()
     mkdir -p "${target_file%/*}" && touch "$target_file"
   fi
 
-  echo "- $@" >> $target_file
+  local number_of_items=${#ITEMS[@]}
+
+  if [ $number_of_items -eq 0 ]; then
+    echo "You haven't specified any items to add."
+    exit 1
+  fi
+
+  for item in "${ITEMS[@]}"; do
+    echo "- $item" >> $target_file
+  done
+
+  echo "Successfully added $number_of_items items in repository $REPOSITORY for $(display_date $AT)"
 }
 
 # Loads the currently registered repositories
@@ -507,6 +520,60 @@ resolve_last_at()
 display_date()
 {
   echo $(date --date "$1" +"%A %B %d, %Y")
+}
+
+add_repository()
+{
+  if [ -z "$REPOSITORY_NAME" ]; then
+    echo "Missing required argument --repository-name"
+    exit 1
+  fi
+
+  if [ -d "$REPOSITORIES_ROOT/$REPOSITORY_NAME" ]; then
+    echo "Repository '$REPOSITORY_NAME' already exists."
+  else
+    mkdir -p "$REPOSITORIES_ROOT/$REPOSITORY_NAME"
+  fi
+
+  if ! [ -z "$REPOSITORY_DESCRIPTION" ]; then
+    echo "$REPOSITORY_DESCRIPTION" > "$REPOSITORIES_ROOT/$REPOSITORY_NAME/description.md"
+  fi
+}
+
+set_repository_description()
+{
+  if [ -z "$REPOSITORY_DESCRIPTION" ]; then
+    echo "Missing required argument --repository-description"
+    exit 1
+  fi
+
+  if [ -z "$REPOSITORY" ]; then
+    echo "No repository specified. Changing the default: $DEFAULT_REPOSITORY"
+    REPOSITORY="$DEFAULT_REPOSITORY"
+  fi
+
+  echo -e "$REPOSITORY_DESCRIPTION" > "$REPOSITORIES_ROOT/$REPOSITORY/description.md"
+}
+
+execute()
+{
+  case "$COMMAND" in
+    show)
+      show
+      ;;
+    add)
+      add_entry
+      ;;
+    configure)
+      configure
+      ;;
+    add_repository)
+      add_repository
+      ;;
+    set_repository_description)
+      set_repository_description
+      ;;
+  esac
 }
 
 stup "$@"; exit
