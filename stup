@@ -239,10 +239,10 @@ handle_configuration_variable()
 {
   case "$1" in
     repositories_root)
-      REPOSITORIES_ROOT=$2
+      REPOSITORIES_ROOT="$2"
       ;;
     default_repository)
-      DEFAULT_REPOSITORY=$2
+      DEFAULT_REPOSITORY="$2"
       ;;
   esac
 }
@@ -280,8 +280,8 @@ parse_arguments()
       show "$@"
       ;;
     *)
-      COMMAND="show"
-      show "$@"
+      echo "Error: Unsupported command \"$1\"" >&2
+      exit 1
       ;;
   esac
 }
@@ -324,7 +324,7 @@ extract_date_components()
 
 resolve_required_repository()
 {
-  if [ -e "$REPOSITORY" ]; then
+  if [[ -z "$REPOSITORY" ]]; then
     REPOSITORY="$DEFAULT_REPOSITORY"
   fi
 }
