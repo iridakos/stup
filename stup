@@ -1,0 +1,512 @@
+#!/bin/bash
+# SOURCE: https://github.com/iridakos/stup
+# MIT License
+#
+# Copyright (c) 2020 Lazarus Lazaridis
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+PARAMS=""
+AT=""
+COMMAND=""
+YEAR=""
+MONTH=""
+DAY=""
+REPOSITORY=""
+REPOSITORIES_ROOT=""
+DEFAULT_REPOSITORY=""
+
+stup()
+{
+  resolve_configuration_file
+  parse_options "$@"
+
+  if [ "$COMMAND" != "configure" ]; then
+    ensure_configured
+    load_configuration
+  fi
+
+  parse_arguments $PARAMS
+}
+
+ensure_configured()
+{
+  if ! [ -f "$CONFIG_FILE" ]; then
+    error "Failed to find configuration file: $CONFIG_FILE"
+    hint "Have you configured stup?"
+    exit 1
+  fi
+
+  source "$CONFIG_FILE"
+
+  if [ -z "$repositories_root" ]; then
+    error "Invalid stup configuration - missing repositories root"
+    hint "Use \"stup --configure\" to reconfigure stup"
+    exit 1
+  fi
+}
+
+error()
+{
+  printf "%+8s > %s\n" "Error" "$1"
+}
+
+hint()
+{
+  printf "%+8s > %s\n" "Hint" "$1"
+}
+
+parse_options()
+{
+  while (( "$#" )); do
+    case "$1" in
+      @|-@|--at)
+        AT="$2"
+        shift 2
+        ;;
+      -r|--repository)
+        load_configuration
+        load_repositories
+        
+        if [[ ! " ${REPOSITORIES[@]} " =~ " ${2} " ]]; then
+          error "Repository $2 does not exist."
+          exit 1
+        fi
+
+        REPOSITORY="$2"
+        shift 2
+        ;;
+      --configure)
+        COMMAND="configure"
+        configure
+        shift
+        ;;
+      --) # end argument parsing
+        shift
+        break
+        ;;
+      -*|--*=) # unsupported flags
+        echo "Error: Unsupported flag $1" >&2
+        exit 1
+        ;;
+      *) # preserve positional arguments
+        PARAMS="$PARAMS $1"
+        shift
+        ;;
+    esac
+  done
+}
+
+configure()
+{
+  if ! [ -f "$CONFIG_FILE" ]; then
+    fist_time=true
+    touch -a "$CONFIG_FILE"
+    echo -e "repositories_root=$HOME/stup\ndefault_repository=main\n" >> $CONFIG_FILE
+  fi
+
+  load_configuration
+
+  wizard "repositories_root"
+  wizard "default_repository"
+
+  store_configuration
+
+  exit 0
+}
+
+wizard()
+{
+  case "$1" in
+    repositories_root)
+      if [[ "$2" ]]; then
+        echo "$2"
+      else
+        echo "Please specify which directory will be the root of all the repositories stup will be using to store your standup notes."
+        echo "By default, the logs will be stored in $REPOSITORIES_ROOT."
+      fi
+
+      read -e -p "Type d/D/default to use the default location or fill in your desired destination: " new_repository_root
+      new_repository_root=$(echo -e "${new_repository_root}" | tr -d '[:space:]')
+      
+      if [[ -z "$new_repository_root" ]]; then
+        wizard "repositories_root" "I couldn't understand your selection."
+        return
+      fi
+      
+      case "$new_repository_root" in
+        d|D|default)
+          echo "Keeping default directory."
+          ;;
+        *)
+          {
+            new_repository_root="${new_repository_root/#\~/$HOME}"
+            new_repository_root=$(readlink -f "$new_repository_root")
+            
+            mkdir -p "$new_repository_root"
+
+            new_repository_root=$(builtin cd "$new_repository_root" 2>/dev/null && pwd)
+            
+            if [[ -d "$new_repository_root" ]]; then
+              REPOSITORIES_ROOT="$new_repository_root"
+            else
+              wizard "repositories_root" "Failed to create the new repository root."
+            fi
+          } || {
+            wizard "repositories_root" "Failed to create the new repository root, make sure it's a valid path."
+          }
+          ;;
+      esac
+      ;;
+    default_repository)
+      if [[ "$2" ]]; then
+        echo "$2"
+      else
+        echo "Please specify which repository will be your default one (if you have many)."
+        echo "The default repository is currently set to \"$DEFAULT_REPOSITORY\"."
+      fi
+
+      read -e -p "Type d/D/default to keep the default or fill in a new one (ex. review): " new_default_repository
+      new_default_repository=$(echo -e "${new_default_repository}" | tr -d '[:space:]')
+
+      if [[ -z "$new_default_repository" ]]; then
+        wizard "default_repository" "I couldn't understand your selection."
+        return
+      fi
+
+      case "$new_default_repository" in
+        d|D|default)
+          echo "Default repository still set to \"$DEFAULT_REPOSITORY\"."
+          ;;
+        *)
+          {
+            mkdir -p "$REPOSITORIES_ROOT/$new_default_repository"
+            
+            if [[ -d "$REPOSITORIES_ROOT/$new_default_repository" ]]; then
+              DEFAULT_REPOSITORY="$new_default_repository"
+              echo "Repository set to $DEFAULT_REPOSITORY"
+            else
+              wizard "default_repository" "Failed to create the default repository's directory. Make sure the name is also a valid directory name."
+            fi
+          } || {
+            wizard "default_repository" "Failed to create the directory for the new default repository. Make sure the name is also a valid directory name."
+          }
+          ;;
+      esac
+      ;;
+  esac
+}
+
+load_configuration()
+{
+  if [[ $CONFIGURATION_LOADED == true ]]; then
+    return
+  fi
+
+  if [ -z CONFIG_FILE ]; then
+    echo "Configuration file not found"
+    exit 1
+  fi
+
+  while IFS='=' read variable_name variable_value
+  do
+    if [[ $variable_value ]]
+    then
+      handle_configuration_variable "$variable_name" "$variable_value"
+    fi
+  done < $CONFIG_FILE
+
+  CONFIGURATION_LOADED=true
+}
+
+handle_configuration_variable()
+{
+  case "$1" in
+    repositories_root)
+      REPOSITORIES_ROOT=$2
+      ;;
+    default_repository)
+      DEFAULT_REPOSITORY=$2
+      ;;
+  esac
+}
+
+resolve_configuration_file()
+{
+  CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/stup.conf"
+}
+
+store_configuration()
+{
+  echo -e "repositories_root=$REPOSITORIES_ROOT\ndefault_repository=$DEFAULT_REPOSITORY\n" > $CONFIG_FILE
+}
+
+parse_arguments()
+{
+  case "$1" in
+    today|tomorrow|yesterday)
+      AT="$1"
+      shift
+      parse_arguments "$@"
+      ;;
+    add)
+      COMMAND="add"
+      shift
+      add_entry "$@"
+      ;;
+    configure)
+      COMMAND="configure"
+      shift
+      ;;
+    show)
+      COMMAND="show"
+      shift
+      show "$@"
+      ;;
+    *)
+      COMMAND="show"
+      show "$@"
+      ;;
+  esac
+}
+
+resolve_date()
+{
+  if [ ! -z "$AT" ]; then
+    return
+  fi
+
+  case "$COMMAND" in
+    show)
+      AT="yesterday"
+      ;;
+    add)
+      AT="today"
+      ;;
+    *)
+      echo "[WARN] don't know how to handle default date for command: $COMMAND"
+      ;;
+  esac
+}
+
+extract_date_components()
+{
+  case "$AT" in
+    today|yesterday|tomorrow)
+      YEAR=$(date -d "$AT" +"%Y")
+      MONTH=$(date -d "$AT" +"%m")
+      DAY=$(date -d "$AT" +"%d")
+      ;;
+    *)
+      IFS='-' read -ra parts <<< "$AT"
+      YEAR="${parts[0]}"
+      MONTH="${parts[1]}"
+      DAY="${parts[2]}"
+      ;;
+  esac
+}
+
+resolve_required_repository()
+{
+  if [ -e "$REPOSITORY" ]; then
+    REPOSITORY="$DEFAULT_REPOSITORY"
+  fi
+}
+
+add_entry()
+{
+  resolve_required_repository
+  resolve_date
+  extract_date_components
+
+  target_file="$(resolve_target_file $REPOSITORY)"
+
+  if ! [ -f "$target_file" ]; then
+    mkdir -p "${target_file%/*}" && touch "$target_file"
+  fi
+
+  echo "- $@" >> $target_file
+}
+
+# Loads the currently registered repositories
+load_repositories()
+{
+  if [[ $REPOSITORIES_LOADED == true ]]; then
+    return
+  fi
+
+  REPOSITORIES=()
+  directories=($REPOSITORIES_ROOT/*)
+  for dir in "${directories[@]}"; do
+    if [ -d $dir ]; then
+      REPOSITORIES+=("$(basename $dir)")
+    fi
+  done
+
+  REPOSITORIES_LOADED=true
+}
+
+# Resolves the filename of the stup entry for a specific date at a specific repository
+resolve_target_file()
+{
+  echo "$REPOSITORIES_ROOT/$1/$YEAR/$MONTH/$YEAR-$MONTH-$DAY.md"
+}
+
+show()
+{
+  if [[ $1 ]]; then
+    AT="$1"
+  fi
+
+  resolve_date
+  extract_date_components
+
+  if [[ $REPOSITORY ]]; then
+    target_file=$(resolve_target_file "$REPOSITORY")
+    if [ -f "$target_file" ]; then
+      echo -e "Displaying items of repository $REPOSITORY logged for $(date --date $AT +"%A %B %d, %Y").\n"
+      cat $target_file
+    else
+      echo "No entries for repository $REPOSITORY. Searched in $target_file"
+    fi
+  else
+    load_repositories
+
+    # Check if there are any entries for the given date
+    local entries_found=false
+    for repository in "${REPOSITORIES[@]}"; do
+      local target_file=$(resolve_target_file "$repository")
+
+      if [ -f "$target_file" ]; then
+        entries_found=true
+        break
+      fi
+    done
+
+    if [ $entries_found == true ]; then
+      echo -e "Displaying items logged for $(date --date $AT +"%A %B %d, %Y").\n"
+
+      for repository in "${REPOSITORIES[@]}"; do
+        description_file="$REPOSITORIES_ROOT/$repository/description.md"
+
+        if [ -f "$description_file" ]; then
+          cat $description_file
+        else
+          echo "# Items of repository: $repository"
+        fi
+
+        echo ""
+
+        local target_file=$(resolve_target_file "$repository")
+
+        if [ -f "$target_file" ]; then
+          cat "$target_file"
+        else
+          echo -e "None."
+        fi
+
+        echo ""
+      done
+    else
+      echo "No entries found for $(date --date $AT +"%A %B %d, %Y") in any repository."
+      read -e -p "Do you want to retrieve the last entries logged with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+
+      case "$search_last_entries" in
+        y|Y|yes|Yes)
+          resolve_last_at
+          show "$AT"
+          ;;
+        *)
+          exit 0
+      esac
+    fi
+  fi
+}
+
+resolve_last_at()
+{
+  local year=$YEAR,month=$MONTH,day=$DAY,last_at=""
+  local target_path=""
+  local current_target_file=$(basename $(resolve_target_file))
+  local winner=""
+  local current_at="$AT"
+  AT=""
+
+  # TODO: optimize this search, it can get too big with the increase of entries
+  ########################
+  # search in month days #
+  ########################
+  if [[ $REPOSITORY ]]; then
+    target_path="$REPOSITORY/$YEAR/$MONTH"
+  else
+    target_path="*/$YEAR/$MONTH"
+  fi
+
+  while IFS= read -r filename; do
+    if [[ $current_target_file > $filename ]]; then
+      AT="${filename%.*}"
+      return
+    fi
+  done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+
+  #########################
+  # search in year months #
+  #########################
+  if [[ $REPOSITORY ]]; then
+    target_path="$REPOSITORY/$YEAR/*"
+  else
+    target_path="*/$YEAR/*"
+  fi
+
+  while IFS= read -r filename; do
+    if [[ $current_target_file > $filename ]]; then
+      AT="${filename%.*}"
+      return
+    fi
+  done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+
+  ###################
+  # search in years #
+  ###################
+  if [[ $REPOSITORY ]]; then
+    target_path="$REPOSITORY/*/*"
+  else
+    target_path="*/*/*"
+  fi
+
+  while IFS= read -r filename; do
+    if [[ $current_target_file > $filename ]]; then
+      AT="${filename%.*}"
+      return
+    fi
+  done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  
+  # Exit if not previous log file found.
+  if [ -z "$AT" ]; then
+    echo "No entries found prior to $(display_date "$current_at")"
+    exit 0
+  fi
+}
+
+display_date()
+{
+  echo $(date --date "$1" +"%A %B %d, %Y")
+}
+
+stup "$@"; exit
