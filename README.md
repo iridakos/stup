@@ -23,11 +23,11 @@ Follow the wizard to define:
 * to which directory `stup` will be saving your notes
 * what is the name of the default repository*
 
-\* you can use `stup` with just a default repository but in case you want to add your notes structured for example per project or per any type of section you want, you have the option to setup multiple repositories (see below).
+**\*** You can use `stup` with just a default repository but in case you want to add your notes structured for example per project or per any type of section you want, you have the option to setup multiple repositories (see below).
 
 ## Usage
 
-### Log notes
+### Adding notes
 
 To add notes use the `add` command as below:
 
@@ -46,7 +46,7 @@ where:
 
 #### Examples
 
-##### Log a note for current date (all of the following commands are equivalent)
+##### Add a note for current date (all of the following commands are equivalent)
 
 ```bash
 # Implying today (if you don't define the date, the add action defaults to current date)
@@ -62,7 +62,7 @@ $ stup add @ today -n "A new note"
 $ stup add @ 2020-04-17 -n "A new note"
 ```
 
-##### Log a note for yesterday
+##### Add a note for yesterday
 
 All of the following commands are equivalent.
 
@@ -77,7 +77,7 @@ $ stup add yesteday -i "A new note"
 $ stup add @ 2020-04-16 -i "A new note"
 ```
 
-##### Log a note for tomorrow
+##### Add a note for tomorrow
 
 All of the following commands are equivalent.
 
@@ -92,20 +92,20 @@ $ stup add tomorrow -i "A new note"
 $ stup add @ 2020-04-18 -i "A new note"
 ```
 
-##### Log two notes at once
+##### Add two notes at once
 
 ```bash
 $ stup add today -n "Reviewed PR ..." -n "Merged to master..."
 ```
 
-##### Log to a non-default repository
+##### Add to a non-default repository
 
 ```bash
-# Log a note to a repository named 'blocking'
+# Add a note to a repository named 'blocking'
 $ stup add -r "blocking" -n "Can't continue unless"
 ```
 
-### Show notes
+### Showing notes
 
 To view your notes use the `show` command as below:
 
@@ -125,7 +125,7 @@ where:
 **Notes:**
 * the default action of `stup` is to show you your notes so you may write the command without the `show` directive (see the examples).
 * if you request to view your notes on a date that you haven't added anything, `stup` will ask if you want to see the notes of the latest date on which something was added before the one you specified.
-  
+
   For example, if it is **Monday** and you **didn't add any notes during the weekend**, when you type `stup yesterday` you'll be prompted to **see the notes added on Friday**.
 
 #### Examples
@@ -195,9 +195,9 @@ where:
   ```stup
   # Without a description for repository with name mobile
   $ stup yesterday
-  
+
   Displaying notes for Friday, April 16th 2020.
-  
+
   >>> mobile
 
   - A note
@@ -209,11 +209,11 @@ where:
 
   ```
   # With mobile's repository description set to "Mobile related notes"
-  
+
   $ stup yesterday
-  
+
   Displaying notes for Friday, April 16th 2020.
-  
+
   >>> Mobile related notes
 
   - A note
