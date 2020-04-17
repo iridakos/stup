@@ -1,12 +1,14 @@
 # stup
 
-A shell tool to easily log and retrieve your standup notes.
+A shell tool to easily save and view your daily standup notes.
+
+Even though the name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings, you can find it useful for general daily notes as well.
 
 ## Installation
 
 Currently the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
 
-So, you just have to place the executable `stup` in a directory included in your `$PATH` variable.
+So, you just have to place the executable `stup` script in a directory included in your `$PATH` variable.
 
 ## Configuration
 
@@ -21,43 +23,43 @@ Follow the wizard to define:
 * to which directory `stup` will be saving your notes
 * what is the name of the default repository*
 
-\* you can use `stup` with just a default repository but in case you want to log your notes structured for example per project or per any type of section you want, you have the option to setup multiple repositories (see below).
+\* you can use `stup` with just a default repository but in case you want to add your notes structured for example per project or per any type of section you want, you have the option to setup multiple repositories (see below).
 
 ## Usage
 
 ### Log notes
 
-To log notes use the `log` command as below:
+To add notes use the `add` command as below:
 
 ```bash
-stup log @|--at|-@ <when> -n|--note "<note text>" -r|--repository "<repository-name>"
+stup add @|--at|-@ <when> -n|--note "<note text>" -r|--repository "<repository-name>"
 ```
 
 where:
-  * `<when>`: specifies in which date the notes should be logged. Its value can be:
+  * `<when>`: specifies in which date the notes should be added. Its value can be:
     * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@`|`--at`|`-@` option
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
     * **if you ommit this option, `sput` by default will save the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
-  * `-r` or `--repository`: is the repository option (optional). **If ommited, logs will be saved to your default repository**
-    * `<repository-name>`: the name of the repository in which the notes will be logged
+  * `-r` or `--repository`: is the repository option (optional). **If ommited, notes will be saved to your default repository**
+    * `<repository-name>`: the name of the repository in which the notes will be added
 
 #### Examples
 
 ##### Log a note for current date (all of the following commands are equivalent)
 
 ```bash
-# Implying today (if you don't define the date, the log action defaults to current date)
-$ stup log -n "A new note"
-
-# Explicit with date alias 'today'
-$ stup log @ today -n "A new note"
+# Implying today (if you don't define the date, the add action defaults to current date)
+$ stup add -n "A new note"
 
 # Explicit with date alias 'today' ommiting the `@` option
-$ stup log today -n "A new note"
+$ stup add today -n "A new note"
+
+# Explicit with date alias 'today'
+$ stup add @ today -n "A new note"
 
 # Explicit without the 'today' alias (suppose the date is April 17th, 2020)
-$ stup log @ 2020-04-17 -n "A new note"
+$ stup add @ 2020-04-17 -n "A new note"
 ```
 
 ##### Log a note for yesterday
@@ -66,13 +68,13 @@ All of the following commands are equivalent.
 
 ```bash
 # Explicit with date alias 'yesteday'
-$ stup log @ yesteday -i "A new note"
+$ stup add @ yesteday -i "A new note"
 
 # Explicit with date alias ommiting the `@` option
-$ stup log yesteday -i "A new note"
+$ stup add yesteday -i "A new note"
 
 # Explicit without alias (suppose the date is April 17th, 2020)
-$ stup log @ 2020-04-16 -i "A new note"
+$ stup add @ 2020-04-16 -i "A new note"
 ```
 
 ##### Log a note for tomorrow
@@ -81,26 +83,26 @@ All of the following commands are equivalent.
 
 ```bash
 # Explicit with date alias 'tomorrow'
-$ stup log @ tomorrow -i "A new note"
+$ stup add @ tomorrow -i "A new note"
 
 # Explicit with date alias ommiting the `@` option
-$ stup log tomorrow -i "A new note"
+$ stup add tomorrow -i "A new note"
 
 # Explicit without alias (suppose the date is April 17th, 2020)
-$ stup log @ 2020-04-18 -i "A new note"
+$ stup add @ 2020-04-18 -i "A new note"
 ```
 
 ##### Log two notes at once
 
 ```bash
-$ stup log today -n "Reviewed PR ..." -n "Merged to master..."
+$ stup add today -n "Reviewed PR ..." -n "Merged to master..."
 ```
 
 ##### Log to a non-default repository
 
 ```bash
 # Log a note to a repository named 'blocking'
-$ stup log -r "blocking" -n "Can't continue unless"
+$ stup add -r "blocking" -n "Can't continue unless"
 ```
 
 ### Show notes
@@ -108,7 +110,7 @@ $ stup log -r "blocking" -n "Can't continue unless"
 To view your notes use the `show` command as below:
 
 ```bash
-$ stup show @ <when> -r|--repository "<repository-name>"
+$ stup add @ <when> -r|--repository "<repository-name>"
 ```
 
 where:
@@ -118,13 +120,13 @@ where:
       * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@` option
       * a date string in the form: YYYY-MM-DD, example: 2020-04-12
     * **if you ommit this option, `sput` by default will show you your yesterday's notes**
-  * `<repository-name>`: the name of the repository in which the notes will be logged
+  * `<repository-name>`: the name of the repository in which the notes will be added
 
 **Notes:**
 * the default action of `stup` is to show you your notes so you may write the command without the `show` directive (see the examples).
-* if you request to view your notes on a date that you haven't logged anything, `stup` will ask if you want to see the notes of the latest date on which something was logged before the one you specified.
+* if you request to view your notes on a date that you haven't added anything, `stup` will ask if you want to see the notes of the latest date on which something was added before the one you specified.
   
-  For example, if it is **Monday** and you **didn't log anything during the weekend**, when you type `stup yesterday` you'll be prompted to **see the logs of Friday**.
+  For example, if it is **Monday** and you **didn't add any notes during the weekend**, when you type `stup yesterday` you'll be prompted to **see the notes added on Friday**.
 
 #### Examples
 
@@ -174,13 +176,13 @@ $ stup show @ 2020-04-01
 ##### Show notes of a specific repository
 
 ```bash
-# Show today's notes logged in repository "pull-requests"
+# Show today's notes added in repository "pull-requests"
 $ stup show today -r "pull-requests"
 ```
 
 ### Adding a repository
 
-To add a new repository to log notes into use the following command.
+To add a new repository to save notes into use the following command.
 
 ```bash
 $ stup add-repository --repository-name "<repository-name>" --repository-description "<repository-description>"

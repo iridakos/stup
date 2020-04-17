@@ -75,8 +75,8 @@ execute()
     show)
       execute_show
       ;;
-    log)
-      execute_log
+    add)
+      execute_add
       ;;
     configure)
       execute_configure
@@ -94,7 +94,7 @@ execute()
   esac
 }
 
-# Shows the entries logged for a specific date
+# Shows the notes added for a specific date
 execute_show()
 {
   if [[ $1 ]]; then
@@ -107,7 +107,7 @@ execute_show()
   if [[ $REPOSITORY ]]; then
     target_file=$(resolve_target_file "$REPOSITORY")
     if [ -f "$target_file" ]; then
-      print_info "Displaying notes of repository $REPOSITORY logged for $(success_color "$(display_date "$AT")").\n"
+      print_info "Displaying notes of repository $REPOSITORY added for $(success_color "$(display_date "$AT")").\n"
 
       description_file="$REPOSITORIES_ROOT/$REPOSITORY/description.md"
 
@@ -135,7 +135,7 @@ execute_show()
     done
 
     if [ $entries_found == true ]; then
-      print_info "Displaying notes logged for $(display_date "$AT").\n"
+      print_info "Displaying notes added for $(display_date "$AT").\n"
 
       for repository in "${REPOSITORIES[@]}"; do
         description_file="$REPOSITORIES_ROOT/$repository/description.md"
@@ -161,7 +161,7 @@ execute_show()
       done
     else
       print_warning "No entries found for $(display_date $AT) in any repository."
-      read -e -p "Do you want to retrieve the last entries logged with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      read -e -p "Do you want to retrieve the last entries added with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
 
       case "$search_last_entries" in
         y|Y|yes|Yes)
@@ -175,8 +175,8 @@ execute_show()
   fi
 }
 
-# Logs notes to a specific date
-execute_log()
+# Adds notes to a specific date
+execute_add()
 {
   resolve_required_repository
   resolve_date
@@ -300,8 +300,8 @@ parse_options()
         AT="$1"
         shift
         ;;
-      --log|log)
-        COMMAND="log"
+      --add|add)
+        COMMAND="add"
         shift
         ;;
       --show|show)
@@ -377,7 +377,7 @@ wizard()
         print_error "$2"
       else
         print_info "Please specify which directory will be the root of all the repositories stup will be using to store your standup notes."
-        print_info "By default, the logs will be stored in $REPOSITORIES_ROOT."
+        print_info "By default, the notes will be stored in $REPOSITORIES_ROOT."
       fi
 
       read -e -p ">>> Type d/D/default to use the default location or fill in your desired destination: " new_repository_root
@@ -561,7 +561,7 @@ resolve_date()
     show)
       AT="yesterday"
       ;;
-    log)
+    add)
       AT="today"
       ;;
     *)
@@ -570,7 +570,7 @@ resolve_date()
   esac
 }
 
-# Retrieves the last date a log was issued before a specified date
+# Retrieves the last date a note was issued before a specified date
 resolve_last_at()
 {
   local year=$YEAR,month=$MONTH,day=$DAY,last_at=""
@@ -629,7 +629,7 @@ resolve_last_at()
     fi
   done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
   
-  # Exit if not previous log file found.
+  # Exit if no previous notes file found.
   if [ -z "$AT" ]; then
     print_warning "No entries found prior to $(display_date "$current_at")."
     exit 0
