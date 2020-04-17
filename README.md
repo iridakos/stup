@@ -2,11 +2,11 @@
 
 A shell tool to easily save and view your daily standup notes.
 
-Even though the name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings, you can find it useful for general daily notes as well.
+The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings.
 
 ## Installation
 
-Currently the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
+For the moment, the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
 
 So, you just have to place the executable `stup` script in a directory included in your `$PATH` variable.
 
