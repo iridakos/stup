@@ -301,7 +301,7 @@ $ stup order-repositories
 $ stup --order-repositories
 ```
 
-This command opens the repositories registry file in your editor and you can change the order by moving the repository names up and down. Magic.
+This command opens the repositories registry file in your editor and you can change the order by moving the repository names up and down.
 
 ## Future work
 
