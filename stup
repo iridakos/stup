@@ -27,7 +27,7 @@
 #############
 
 # TODO: remove unused
-ITEMS=()
+NOTES=()
 TEXT_BOLD=$(tput bold)
 TEXT_BLACK=$(tput setaf 0)
 TEXT_RED=$(tput setaf 1)
@@ -107,7 +107,7 @@ execute_show()
   if [[ $REPOSITORY ]]; then
     target_file=$(resolve_target_file "$REPOSITORY")
     if [ -f "$target_file" ]; then
-      print_info "Displaying items of repository $REPOSITORY logged for $(success_color "$(display_date "$AT")").\n"
+      print_info "Displaying notes of repository $REPOSITORY logged for $(success_color "$(display_date "$AT")").\n"
 
       description_file="$REPOSITORIES_ROOT/$REPOSITORY/description.md"
 
@@ -135,7 +135,7 @@ execute_show()
     done
 
     if [ $entries_found == true ]; then
-      print_info "Displaying items logged for $(display_date "$AT").\n"
+      print_info "Displaying notes logged for $(display_date "$AT").\n"
 
       for repository in "${REPOSITORIES[@]}"; do
         description_file="$REPOSITORIES_ROOT/$repository/description.md"
@@ -175,12 +175,20 @@ execute_show()
   fi
 }
 
-# Logs items to a specific date
+# Logs notes to a specific date
 execute_log()
 {
   resolve_required_repository
   resolve_date
   extract_date_components
+
+  local number_of_notes=${#NOTES[@]}
+
+  if [ $number_of_notes -eq 0 ]; then
+    print_error "You haven't specified any notes to add."
+    print_hint "Use the --note or -n flag."
+    exit 1
+  fi
 
   target_file="$(resolve_target_file $REPOSITORY)"
 
@@ -188,19 +196,11 @@ execute_log()
     mkdir -p "${target_file%/*}" && touch "$target_file"
   fi
 
-  local number_of_items=${#ITEMS[@]}
-
-  if [ $number_of_items -eq 0 ]; then
-    print_error "You haven't specified any items to add."
-    print_hint "Use the --item flag."
-    exit 1
-  fi
-
-  for item in "${ITEMS[@]}"; do
+  for item in "${NOTES[@]}"; do
     echo "- $item" >> $target_file
   done
 
-  echo -e "Successfully added $(emphasize "$number_of_items") items in repository $(emphasize "$REPOSITORY") for $(display_date $AT)"
+  echo -e "Successfully added $(emphasize "$number_of_notes") notes in repository $(emphasize "$REPOSITORY") for $(display_date $AT)"
 }
 
 # Updates the description of a given repository
@@ -223,14 +223,15 @@ execute_set_repository_description()
 execute_add_repository()
 {
   if [ -z "$REPOSITORY_NAME" ]; then
-    echo "Missing required argument --repository-name"
+    print_error "Missing required argument --repository-name"
     exit 1
   fi
 
   if [ -d "$REPOSITORIES_ROOT/$REPOSITORY_NAME" ]; then
-    echo "Repository '$REPOSITORY_NAME' already exists."
+    print_error "Repository '$REPOSITORY_NAME' already exists."
   else
     mkdir -p "$REPOSITORIES_ROOT/$REPOSITORY_NAME"
+    print_success "Successfully created repository '$REPOSITORY_NAME'"
   fi
 
   if ! [ -z "$REPOSITORY_DESCRIPTION" ]; then
@@ -299,15 +300,11 @@ parse_options()
         AT="$1"
         shift
         ;;
-      log)
+      --log|log)
         COMMAND="log"
         shift
         ;;
-      configure)
-        COMMAND="configure"
-        shift
-        ;;
-      show)
+      --show|show)
         COMMAND="show"
         shift
         ;;
@@ -315,11 +312,11 @@ parse_options()
         AT="$2"
         shift 2
         ;;
-      add-repository)
+      --add-repository|add-repository)
         COMMAND="add_repository"
         shift 1
         ;;
-      set-repository-description)
+      --set-repository-description|set-repository-description)
         COMMAND="set_repository_description"
         shift 1
         ;;
@@ -343,11 +340,11 @@ parse_options()
         REPOSITORY="$2"
         shift 2
         ;;
-      -i|--item)
-        ITEMS+=("$2")
+      -n|--note)
+        NOTES+=("$2")
         shift 2
         ;;
-      --configure)
+      --configure|configure)
         COMMAND="configure"
         shift
         ;;
