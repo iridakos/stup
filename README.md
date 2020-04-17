@@ -40,7 +40,7 @@ where:
   * `<when>`: specifies in which date the notes should be added. Its value can be:
     * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@`|`--at`|`-@` option
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
-    * **if you ommit this option, `sput` by default will save the notes in the current date**
+    * **if you ommit this option, `stup` by default will save the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
   * `-r` or `--repository`: is the repository option (optional). **If ommited, notes will be saved to your default repository**
     * `<repository-name>`: the name of the repository in which the notes will be added
@@ -120,7 +120,7 @@ where:
     * `<when>`: specifies which date's notes should be shown. Its value can be:
       * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@` option
       * a date string in the form: YYYY-MM-DD, example: 2020-04-12
-    * **if you ommit this option, `sput` by default will show you your yesterday's notes**
+    * **if you ommit this option, `stup` by default will show you your yesterday's notes**
   * `<repository-name>`: the name of the repository in which the notes will be added
 
 **Notes:**
@@ -193,7 +193,7 @@ where:
   * `<when>`: specifies in which date the notes should be added. Its value can be:
     * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@`|`--at`|`-@` option
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
-    * **if you ommit this option, `sput` by default will edit the notes in the current date**
+    * **if you ommit this option, `stup` by default will edit the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
   * `-r` or `--repository`: is the repository option (optional). **If ommited, you will edit the notes of your default repository**
     * `<repository-name>`: the name of the repository in which the notes will be added
