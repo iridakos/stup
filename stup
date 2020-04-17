@@ -78,6 +78,9 @@ execute()
     add)
       execute_add
       ;;
+    edit)
+      execute_edit
+      ;;
     configure)
       execute_configure
       ;;
@@ -203,6 +206,38 @@ execute_add()
   echo -e "Successfully added $(emphasize "$number_of_notes") notes in repository $(emphasize "$REPOSITORY") for $(display_date $AT)"
 }
 
+# Opens the file keeping the notes of a specific date for edit in user's default editor
+execute_edit()
+{
+  echo "Let's see, I will edit with $STUP_EDITOR"
+  resolve_required_repository
+  resolve_date
+  extract_date_components
+
+  local target_file="$(resolve_target_file "$REPOSITORY")"
+
+  echo "Target: $target_file"
+
+  if ! [ -f "$target_file" ]; then
+    print_warning "Notes for repository "$REPOSITORY" on $(display_date "$AT") does not exist."
+    read -e -p ">>> Type yes|y to create and edit the file or anything else to abort: " response
+
+    if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+      echo 'Aborted.'
+      exit 0
+    fi
+  fi
+
+  local target_directory="$(dirname "$target_file")"
+  mkdir -p "$target_directory"
+
+  if [ -z "$STUP_EDITOR" ]; then
+    STUP_EDITOR="vi"
+  fi
+
+  $STUP_EDITOR "$target_file"
+}
+
 # Updates the description of a given repository
 execute_set_repository_description()
 {
@@ -251,6 +286,7 @@ execute_configure()
 
   wizard "repositories_root"
   wizard "default_repository"
+  wizard "stup_editor"
 
   store_configuration
 
@@ -308,6 +344,10 @@ parse_options()
         COMMAND="show"
         shift
         ;;
+      --edit|edit)
+        COMMAND="edit"
+        shift
+        ;;
       @|-@|--at)
         AT="$2"
         shift 2
@@ -333,7 +373,7 @@ parse_options()
         load_repositories
 
         if [[ ! " ${REPOSITORIES[@]} " =~ " ${2} " ]]; then
-          error "Repository $2 does not exist."
+          print_error "Repository "$2" does not exist."
           exit 1
         fi
 
@@ -453,6 +493,27 @@ wizard()
           ;;
       esac
       ;;
+    stup_editor)
+      if [ -z "$STUP_EDITOR" ]; then
+        STUP_EDITOR="vi"
+      fi
+
+      if [[ "$2" ]]; then
+        print_error "$2"
+      else
+        print_info "Please specify which editor you want to use when manually editing your notes."
+        print_info "The default editor is currently set to \"$STUP_EDITOR\"."
+      fi
+
+      read -e -p ">>> Type d/D/default to keep the default or fill in a new one (ex. vim): " new_stup_editor
+      new_stup_editor=$(echo -e "${new_stup_editor}" | tr -d '[:space:]')
+
+      if [[ -z "$new_stup_editor" ]]; then
+        wizard "stup_editor" "I couldn't understand your selection."
+        return
+      fi
+
+      STUP_EDITOR="$new_stup_editor"
   esac
 }
 
@@ -490,6 +551,9 @@ handle_configuration_variable()
     default_repository)
       DEFAULT_REPOSITORY="$2"
       ;;
+    stup_editor)
+      STUP_EDITOR="$2"
+      ;;
   esac
 }
 
@@ -502,7 +566,10 @@ resolve_configuration_file()
 # Stores configuration of stup
 store_configuration()
 {
-  echo -e "repositories_root=$REPOSITORIES_ROOT\ndefault_repository=$DEFAULT_REPOSITORY\n" > $CONFIG_FILE
+  echo -e "repositories_root=$REPOSITORIES_ROOT
+default_repository=$DEFAULT_REPOSITORY
+stup_editor=$STUP_EDITOR
+" > $CONFIG_FILE
 }
 
 # Properly sets the current repository to the default one unless already specified
@@ -561,7 +628,7 @@ resolve_date()
     show)
       AT="yesterday"
       ;;
-    add)
+    add|edit)
       AT="today"
       ;;
     *)

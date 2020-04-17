@@ -21,7 +21,8 @@ stup --configure
 Follow the wizard to define:
 
 * to which directory `stup` will be saving your notes
-* what is the name of the default repository*
+* what is the name of the default repository \*
+* what is the editor you want to use to manually edit your notes when using the `edit` command
 
 **\*** You can use `stup` with just a default repository but in case you want to add your notes structured for example per project or per any type of section you want, you have the option to setup multiple repositories (see below).
 
@@ -178,6 +179,47 @@ $ stup show @ 2020-04-01
 ```bash
 # Show today's notes added in repository "pull-requests"
 $ stup show today -r "pull-requests"
+```
+
+### Editing notes of a specific date
+
+To edit notes added in a specific date use the `edit` command as below:
+
+```bash
+stup edit @|--at|-@ <when> -r|--repository "<repository-name>"
+```
+
+where:
+  * `<when>`: specifies in which date the notes should be added. Its value can be:
+    * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@`|`--at`|`-@` option
+    * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
+    * **if you ommit this option, `sput` by default will edit the notes in the current date**
+  * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
+  * `-r` or `--repository`: is the repository option (optional). **If ommited, you will edit the notes of your default repository**
+    * `<repository-name>`: the name of the repository in which the notes will be added
+
+**Note:** If there are no notes for a specific date and repository, you will be asked if you want to create and edit the file anyway.
+
+#### Examples
+
+##### Editing yesterday's notes
+
+```bash
+# Ommiting repository option, implying the default one
+$ stup edit yesterday
+
+# Editing yesterday's notes for the repository with name "blocking"
+$ stup edit @ yesterday -r "blocking"
+```
+
+##### Editing notes on specific date
+
+```bash
+# Ommiting repository option, implying the default one
+$ stup edit @ 2020-03-24
+
+# Editing notes saved on March 24th, 2020 for the repository with name "blocking"
+$ stup edit @ 2020-03-24 -r "blocking"
 ```
 
 ### Adding a repository
