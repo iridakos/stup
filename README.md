@@ -4,7 +4,7 @@ A shell tool to easily log and retrieve your standup notes.
 
 ## Installation
 
-Currently the installation is manual until [this issue](#6) is resolved.
+Currently the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
 
 So, you just have to place the executable `stup` in a directory included in your `$PATH` variable.
 
