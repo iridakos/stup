@@ -261,7 +261,7 @@ execute_configure()
 # Command helper methods #
 ##########################
 
-# Ensures sput is configured
+# Ensures stup is configured
 ensure_configured()
 {
   if ! [ -f "$CONFIG_FILE" ]; then
@@ -331,7 +331,7 @@ parse_options()
       -r|--repository)
         load_configuration
         load_repositories
-        
+
         if [[ ! " ${REPOSITORIES[@]} " =~ " ${2} " ]]; then
           error "Repository $2 does not exist."
           exit 1
@@ -382,12 +382,12 @@ wizard()
 
       read -e -p ">>> Type d/D/default to use the default location or fill in your desired destination: " new_repository_root
       new_repository_root=$(echo -e "${new_repository_root}" | tr -d '[:space:]')
-      
+
       if [[ -z "$new_repository_root" ]]; then
         wizard "repositories_root" "I couldn't understand your selection."
         return
       fi
-      
+
       case "$new_repository_root" in
         d|D|default)
           print_success "Keeping default directory."
@@ -397,11 +397,11 @@ wizard()
           {
             new_repository_root="${new_repository_root/#\~/$HOME}"
             new_repository_root=$(readlink -f "$new_repository_root")
-            
+
             mkdir -p "$new_repository_root"
 
             new_repository_root=$(builtin cd "$new_repository_root" 2>/dev/null && pwd)
-            
+
             if [[ -d "$new_repository_root" ]]; then
               REPOSITORIES_ROOT="$new_repository_root"
             else
@@ -417,7 +417,7 @@ wizard()
       if [ -z "$DEFAULT_REPOSITORY" ]; then
         DEFAULT_REPOSITORY="main"
       fi
-      
+
       if [[ "$2" ]]; then
         print_error "$2"
       else
@@ -440,7 +440,7 @@ wizard()
         *)
           {
             mkdir -p "$REPOSITORIES_ROOT/$new_default_repository"
-            
+
             if [[ -d "$REPOSITORIES_ROOT/$new_default_repository" ]]; then
               DEFAULT_REPOSITORY="$new_default_repository"
               echo "Repository set to $DEFAULT_REPOSITORY"
@@ -456,7 +456,7 @@ wizard()
   esac
 }
 
-# Loads the sput configuration
+# Loads the stup configuration
 load_configuration()
 {
   if [[ $CONFIGURATION_LOADED == true ]]; then
@@ -493,13 +493,13 @@ handle_configuration_variable()
   esac
 }
 
-# Resolves the location of the sput configuration file
+# Resolves the location of the stup configuration file
 resolve_configuration_file()
 {
   CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/stup.conf"
 }
 
-# Stores configuration of sput
+# Stores configuration of stup
 store_configuration()
 {
   echo -e "repositories_root=$REPOSITORIES_ROOT\ndefault_repository=$DEFAULT_REPOSITORY\n" > $CONFIG_FILE
@@ -628,7 +628,7 @@ resolve_last_at()
       return
     fi
   done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
-  
+
   # Exit if no previous notes file found.
   if [ -z "$AT" ]; then
     print_warning "No entries found prior to $(display_date "$current_at")."
@@ -670,7 +670,7 @@ print_hint()
 
 print_info()
 {
-  echo -e "${TEXT_BLUE}$1${TEXT_NORMAL}" 
+  echo -e "${TEXT_BLUE}$1${TEXT_NORMAL}"
 }
 
 print_success()
