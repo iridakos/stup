@@ -87,6 +87,12 @@ execute()
     add_repository)
       execute_add_repository
       ;;
+    show_repositories)
+      execute_show_repositories
+      ;;
+    order_repositories)
+      execute_order_repositories
+      ;;
     set_repository_description)
       execute_set_repository_description
       ;;
@@ -209,14 +215,13 @@ execute_add()
 # Opens the file keeping the notes of a specific date for edit in user's default editor
 execute_edit()
 {
-  echo "Let's see, I will edit with $STUP_EDITOR"
   resolve_required_repository
   resolve_date
   extract_date_components
 
   local target_file="$(resolve_target_file "$REPOSITORY")"
 
-  echo "Target: $target_file"
+  print_info "About to edit: $target_file"
 
   if ! [ -f "$target_file" ]; then
     print_warning "Notes for repository "$REPOSITORY" on $(display_date "$AT") does not exist."
@@ -238,6 +243,53 @@ execute_edit()
   $STUP_EDITOR "$target_file"
 }
 
+# Adds a repository
+execute_add_repository()
+{
+  if [ -z "$REPOSITORY_NAME" ]; then
+    print_error "Missing required argument --repository-name"
+    exit 1
+  fi
+
+  if [ -d "$REPOSITORIES_ROOT/$REPOSITORY_NAME" ]; then
+    print_warning "Repository '$REPOSITORY_NAME' directory already exists. Ensuring its presence in the repositories configuration file as well."
+  else
+    mkdir -p "$REPOSITORIES_ROOT/$REPOSITORY_NAME"
+    print_success "Successfully created repository '$REPOSITORY_NAME'"
+  fi
+
+  store_repository_configuration "$REPOSITORY_NAME"
+
+  if ! [ -z "$REPOSITORY_DESCRIPTION" ]; then
+    echo "$REPOSITORY_DESCRIPTION" > "$REPOSITORIES_ROOT/$REPOSITORY_NAME/description.md"
+  fi
+}
+
+# Shows current repositories
+execute_show_repositories()
+{
+  load_repositories
+
+  printf '%s\n' "${REPOSITORIES[@]}"
+}
+
+# Opens the repositories configuration file for edit
+execute_order_repositories()
+{
+  local conf="$(resolve_repositories_configuration_file)"
+
+  if ! [ -f "$conf" ]; then
+    print_error "problem"
+    exit 1
+  fi
+
+  if [ -z "$STUP_EDITOR" ]; then
+    STUP_EDITOR="vi"
+  fi
+
+  $STUP_EDITOR "$conf"
+}
+
 # Updates the description of a given repository
 execute_set_repository_description()
 {
@@ -254,26 +306,7 @@ execute_set_repository_description()
   echo -e "$REPOSITORY_DESCRIPTION" > "$REPOSITORIES_ROOT/$REPOSITORY/description.md"
 }
 
-# Adds a repository
-execute_add_repository()
-{
-  if [ -z "$REPOSITORY_NAME" ]; then
-    print_error "Missing required argument --repository-name"
-    exit 1
-  fi
-
-  if [ -d "$REPOSITORIES_ROOT/$REPOSITORY_NAME" ]; then
-    print_error "Repository '$REPOSITORY_NAME' already exists."
-  else
-    mkdir -p "$REPOSITORIES_ROOT/$REPOSITORY_NAME"
-    print_success "Successfully created repository '$REPOSITORY_NAME'"
-  fi
-
-  if ! [ -z "$REPOSITORY_DESCRIPTION" ]; then
-    echo "$REPOSITORY_DESCRIPTION" > "$REPOSITORIES_ROOT/$REPOSITORY_NAME/description.md"
-  fi
-}
-
+# Configures stup via a wizard
 execute_configure()
 {
   if ! [ -f "$CONFIG_FILE" ]; then
@@ -325,6 +358,12 @@ ensure_configured()
     print_hint "Use \"stup --configure\" to re-configure stup"
     exit 1
   fi
+
+  if ! [ -f "$(resolve_repositories_configuration_file)" ]; then
+    print_error "Invalid stup configuration - missing repositories configuration file"
+    print_hint "Use \"stup --configure\" to re-configure stup"
+    exit 1
+  fi
 }
 
 # Parses the user's options
@@ -356,8 +395,16 @@ parse_options()
         COMMAND="add_repository"
         shift 1
         ;;
+      --order-repositories|order-repositories)
+        COMMAND="order_repositories"
+        shift 1
+        ;;
       --set-repository-description|set-repository-description)
         COMMAND="set_repository_description"
+        shift 1
+        ;;
+      --show-repositories|show-repositories|repositories)
+        COMMAND="show_repositories"
         shift 1
         ;;
       --repository-name)
@@ -420,18 +467,14 @@ wizard()
         print_info "By default, the notes will be stored in $REPOSITORIES_ROOT."
       fi
 
-      read -e -p ">>> Type d/D/default to use the default location or fill in your desired destination: " new_repository_root
+      read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_repository_root
       new_repository_root=$(echo -e "${new_repository_root}" | tr -d '[:space:]')
 
-      if [[ -z "$new_repository_root" ]]; then
-        wizard "repositories_root" "I couldn't understand your selection."
-        return
-      fi
-
       case "$new_repository_root" in
-        d|D|default)
+        "")
           print_success "Keeping default directory."
           mkdir -p "$REPOSITORIES_ROOT"
+          touch -a "$(resolve_repositories_configuration_file)"
           ;;
         *)
           {
@@ -444,6 +487,7 @@ wizard()
 
             if [[ -d "$new_repository_root" ]]; then
               REPOSITORIES_ROOT="$new_repository_root"
+              touch -a "$(resolve_repositories_configuration_file)"
             else
               wizard "repositories_root" "Failed to create the new repository root."
             fi
@@ -465,17 +509,13 @@ wizard()
         print_info "The default repository is currently set to \"$DEFAULT_REPOSITORY\"."
       fi
 
-      read -e -p ">>> Type d/D/default to keep the default or fill in a new one (ex. review): " new_default_repository
+      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_repository
       new_default_repository=$(echo -e "${new_default_repository}" | tr -d '[:space:]')
 
-      if [[ -z "$new_default_repository" ]]; then
-        wizard "default_repository" "I couldn't understand your selection."
-        return
-      fi
-
       case "$new_default_repository" in
-        d|D|default)
+        "")
           print_success "Default repository still set to \"$DEFAULT_REPOSITORY\"."
+          store_repository_configuration "$DEFAULT_REPOSITORY"
           ;;
         *)
           {
@@ -483,7 +523,8 @@ wizard()
 
             if [[ -d "$REPOSITORIES_ROOT/$new_default_repository" ]]; then
               DEFAULT_REPOSITORY="$new_default_repository"
-              echo "Repository set to $DEFAULT_REPOSITORY"
+              print_success "Default repository set to $DEFAULT_REPOSITORY"
+              store_repository "$DEFAULT_REPOSITORY"
             else
               wizard "default_repository" "Failed to create the default repository's directory. Make sure the name is also a valid directory name."
             fi
@@ -505,15 +546,16 @@ wizard()
         print_info "The default editor is currently set to \"$STUP_EDITOR\"."
       fi
 
-      read -e -p ">>> Type d/D/default to keep the default or fill in a new one (ex. vim): " new_stup_editor
+      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. vim): " new_stup_editor
       new_stup_editor=$(echo -e "${new_stup_editor}" | tr -d '[:space:]')
 
-      if [[ -z "$new_stup_editor" ]]; then
-        wizard "stup_editor" "I couldn't understand your selection."
-        return
-      fi
+      if ! [[ -z "$new_stup_editor" ]]; then
+        STUP_EDITOR="$new_stup_editor"
+        print_success "Stup editor set to: $STUP_EDITOR"
 
-      STUP_EDITOR="$new_stup_editor"
+      else
+        print_success "Keeping the default editor: $STUP_EDITOR."
+      fi
   esac
 }
 
@@ -572,6 +614,17 @@ stup_editor=$STUP_EDITOR
 " > $CONFIG_FILE
 }
 
+store_repository_configuration()
+{
+  load_repositories
+
+  local repository_to_store="$1"
+
+  if ! $(array_contains REPOSITORIES "$repository_to_store") ; then
+    echo "$repository_to_store" >> "$(resolve_repositories_configuration_file)"
+  fi
+}
+
 # Properly sets the current repository to the default one unless already specified
 resolve_required_repository()
 {
@@ -602,19 +655,19 @@ extract_date_components()
 # Loads the currently registered repositories
 load_repositories()
 {
-  if [[ $REPOSITORIES_LOADED == true ]]; then
-    return
-  fi
+  IFS=$'\n' read -d '' -r -a REPOSITORIES < "$(resolve_repositories_configuration_file)"
+}
 
-  REPOSITORIES=()
-  directories=($REPOSITORIES_ROOT/*)
-  for dir in "${directories[@]}"; do
-    if [ -d $dir ]; then
-      REPOSITORIES+=("$(basename $dir)")
-    fi
+# Checks if array has an element
+# https://stackoverflow.com/a/14367368/2292448
+array_contains () {
+  local array="$1[@]"
+  local seeking=$2
+  for element in "${!array}"; do
+    [[ $element == "$seeking" ]] && return
   done
 
-  REPOSITORIES_LOADED=true
+  false
 }
 
 # Sets the default date per action if not specified by the user
@@ -714,6 +767,12 @@ display_date()
 resolve_target_file()
 {
   echo "$REPOSITORIES_ROOT/$1/$YEAR/$MONTH/$YEAR-$MONTH-$DAY.md"
+}
+
+# Resolves the filename of the repositories configuration
+resolve_repositories_configuration_file()
+{
+  echo "$REPOSITORIES_ROOT/repositories.conf"
 }
 
 #####################

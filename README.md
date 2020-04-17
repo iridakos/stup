@@ -277,6 +277,32 @@ where:
 - `<repository-name>`: the name of the repository whose description will be set. If you ommit this options, you will change the description of your default repository.
 - `<repository-description>`: the description to set
 
+### Showing your repositories
+
+To see all your repositories use the `order-repositories` command as show below:
+
+```bash
+$ stup show-repositories
+
+# or the equivalent
+
+$ stup --show-repositories
+```
+
+### Changing the order of your repositories
+
+To change the order of your repositories (affecting the order with which the notes are shown) use the `order-repositories` command as shown below:
+
+```bash
+$ stup order-repositories
+
+# or the equivalent
+
+$ stup --order-repositories
+```
+
+This command opens the repositories registry file in your editor and you can change the order by moving the repository names up and down. Magic.
+
 ## Future work
 
 New features that are on the top of my list for `stup`:
