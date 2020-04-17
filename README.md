@@ -34,7 +34,7 @@ stup log @|--at|-@ <when> -n|--note "<note text>" -r|--repository "<repository-n
 ```
 
 where:
-  * `<when>`: specifies to which date the notes should be logged. Its value can be:
+  * `<when>`: specifies in which date the notes should be logged. Its value can be:
     * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@`|`--at`|`-@` option
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
     * **if you ommit this option, `sput` by default will save the notes in the current date**
@@ -114,7 +114,7 @@ $ stup show @ <when> -r|--repository "<repository-name>"
 where:
 
   * `@` or `--at` or `-@`: is the date option
-    * `<when>`: specifies to which date the notes should be logged. Its value can be:
+    * `<when>`: specifies which date's notes should be shown. Its value can be:
       * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@` option
       * a date string in the form: YYYY-MM-DD, example: 2020-04-12
     * **if you ommit this option, `sput` by default will show you your yesterday's notes**
@@ -241,7 +241,7 @@ New features that are on the top of my list for `stup`:
 * Ability to [search notes](https://github.com/iridakos/stup/issues/7)
 * Ability to [export notes](https://github.com/iridakos/stup/issues/8) to a file
 
-You can find more information about what is planned to be implemented browsing the [GitHub repository's issues labeled as `new feauture`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
+You can find more information about what is planned to be implemented browsing the [GitHub repository's issues labeled as `new feature`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
 
 ## Contributing
 
