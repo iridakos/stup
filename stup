@@ -87,8 +87,8 @@ execute()
     add_repository)
       execute_add_repository
       ;;
-    show_repositories)
-      execute_show_repositories
+    list_repositories)
+      execute_list_repositories
       ;;
     order_repositories)
       execute_order_repositories
@@ -266,7 +266,7 @@ execute_add_repository()
 }
 
 # Shows current repositories
-execute_show_repositories()
+execute_list_repositories()
 {
   load_repositories
 
@@ -403,9 +403,9 @@ parse_options()
         COMMAND="set_repository_description"
         shift 1
         ;;
-      --show-repositories|show-repositories|repositories)
-        COMMAND="show_repositories"
-        shift 1
+      --list-repositories|list-repositories|repositories)
+        COMMAND="list_repositories"
+        shift
         ;;
       --repository-name)
         REPOSITORY_NAME="$2"
