@@ -21,10 +21,10 @@ stup --configure
 Follow the wizard to define:
 
 * to which directory `stup` will be saving your notes
-* what is the name of the default repository \*
+* what is the name of the default category \*
 * what is the editor you want to use to manually edit your notes when using the `edit` command
 
-**\*** You can use `stup` with just a default repository but in case you want to add your notes structured for example per project or per any type of section you want, you have the option to setup multiple repositories (see below).
+**\*** You can use `stup` with just a default category but in case you want to add your notes structured for example per project or per any type of section you want, you have the option to create and use multiple categories (see below).
 
 ## Usage
 
@@ -33,7 +33,7 @@ Follow the wizard to define:
 To add notes use the `add` command as below:
 
 ```bash
-stup add @|--at|-@ <when> -n|--note "<note text>" -r|--repository "<repository-name>"
+stup add @|--at|-@ <when> -n|--note "<note text>" -c|--category "<category-name>"
 ```
 
 where:
@@ -42,8 +42,8 @@ where:
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
     * **if you ommit this option, `stup` by default will save the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
-  * `-r` or `--repository`: is the repository option (optional). **If ommited, notes will be saved to your default repository**
-    * `<repository-name>`: the name of the repository in which the notes will be added
+  * `-c` or `--category`: is the category option (optional). **If ommited, notes will be saved to your default category**
+    * `<category-name>`: the name of the category in which the notes will be added
 
 #### Examples
 
@@ -99,11 +99,11 @@ $ stup add @ 2020-04-18 -i "A new note"
 $ stup add today -n "Reviewed PR ..." -n "Merged to master..."
 ```
 
-##### Add to a non-default repository
+##### Add to a non-default category
 
 ```bash
-# Add a note to a repository named 'blocking'
-$ stup add -r "blocking" -n "Can't continue unless"
+# Add a note to a category named 'blocking'
+$ stup add -c "blocking" -n "Can't continue unless"
 ```
 
 ### Show notes
@@ -111,7 +111,7 @@ $ stup add -r "blocking" -n "Can't continue unless"
 To view your notes use the `show` command as below:
 
 ```bash
-$ stup add @ <when> -r|--repository "<repository-name>"
+$ stup add @ <when> -c|--category "<category-name>"
 ```
 
 where:
@@ -121,10 +121,10 @@ where:
       * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@` option
       * a date string in the form: YYYY-MM-DD, example: 2020-04-12
     * **if you ommit this option, `stup` by default will show you your yesterday's notes**
-  * `<repository-name>`: the name of the repository whose notes will be shown. **You may ommit this option if you want to see notes from all the repositories**.
+  * `<category-name>`: the name of the category whose notes will be shown. **You may ommit this option if you want to see notes from all the categories**.
 
-If you don't specify a repository and you have more than one, the default behaviour is to show notes only from the repositories that have notes the specified day.
-If you prefer though to show the "empty" repositories as well, you may use the `--include-empty`.
+If you don't specify a category and you have more than one, the default behaviour is to show notes only from the categories that have notes the specified day.
+If you prefer though to show the "empty" categories as well, you may use the `--include-empty`.
 
 **Notes:**
 * the default action of `stup` is to show you your notes so you may write the command without the `show` directive (see the examples).
@@ -177,10 +177,10 @@ $ stup @ 2020-04-16
 $ stup show @ 2020-04-01
 ```
 
-##### Show notes of a specific repository
+##### Show notes of a specific category
 
 ```bash
-# Show today's notes added in repository "pull-requests"
+# Show today's notes added in category "pull-requests"
 $ stup show today -r "pull-requests"
 ```
 
@@ -230,7 +230,7 @@ $ stup log --from 2020-01-15 --to 2020-02-01
 To manually edit notes added in a specific date use the `edit` command as below:
 
 ```bash
-stup edit @|--at|-@ <when> -r|--repository "<repository-name>"
+stup edit @|--at|-@ <when> -c|--category "<category-name>"
 ```
 
 where:
@@ -239,47 +239,47 @@ where:
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
     * **if you ommit this option, `stup` by default will edit the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
-  * `-r` or `--repository`: is the repository option (optional). **If ommited, you will edit the notes of your default repository**
-    * `<repository-name>`: the name of the repository in which the notes will be added
+  * `-r` or `--category`: is the category option (optional). **If ommited, you will edit the notes of your default category**
+    * `<category-name>`: the name of the category in which the notes will be added
 
-**Note:** If there are no notes for a specific date and repository, you will be asked if you want to create and edit the file anyway.
+**Note:** If there are no notes for a specific date and category, you will be asked if you want to create and edit the file anyway.
 
 #### Examples
 
 ##### Editing yesterday's notes
 
 ```bash
-# Ommiting repository option, implying the default one
+# Ommiting category option, implying the default one
 $ stup edit yesterday
 
-# Editing yesterday's notes for the repository with name "blocking"
+# Editing yesterday's notes for the category with name "blocking"
 $ stup edit @ yesterday -r "blocking"
 ```
 
 ##### Editing notes on specific date
 
 ```bash
-# Ommiting repository option, implying the default one
+# Ommiting category option, implying the default one
 $ stup edit @ 2020-03-24
 
-# Editing notes saved on March 24th, 2020 for the repository with name "blocking"
+# Editing notes saved on March 24th, 2020 for the category with name "blocking"
 $ stup edit @ 2020-03-24 -r "blocking"
 ```
 
-### Add a new repository
+### Add a new category
 
-To add a new repository to save notes into use the following command.
+To add a new category to save notes into use the following command.
 
 ```bash
-$ stup add-repository --repository-name "<repository-name>" --repository-description "<repository-description>"
+$ stup add-category --category-name "<category-name>" --category-description "<category-description>"
 ```
 
 where:
 
-- `<repository-name>`: the name of the repository to be created. This is going to be a directory so make sure it's a valid directory name.
-- `<repository-description>`: the description of this repository. Even though this is optionally set, it is highly recommended to be defined. Whenever `stup` shows your notes, the title of each repository will default to the repository name if the repository doesn't have a description.
+- `<category-name>`: the name of the category to be created. This is going to be a directory so make sure it's a valid directory name.
+- `<category-description>`: the description of this category. Even though this is optionally set, it is highly recommended to be defined. Whenever `stup` shows your notes, the title of each category will default to the category name if the category doesn't have a description.
   ```stup
-  # Without a description for repository with name mobile
+  # Without a description for category with name mobile
   $ stup yesterday
 
   Displaying notes for Friday, April 16th 2020.
@@ -294,7 +294,7 @@ where:
   vs
 
   ```
-  # With mobile's repository description set to "Mobile related notes"
+  # With mobile's category description set to "Mobile related notes"
 
   $ stup yesterday
 
@@ -308,44 +308,44 @@ where:
 
   ```
 
-### Set a repository's description
+### Set a category's description
 
-To set a new description or change the existing description of a repository use the following command.
+To set a new description or change the existing description of a category use the following command.
 
 ```bash
-$ stup set-repository-description --repository-name "<repository-name>" --repository-description "<repository-description>"
+$ stup set-category-description --category-name "<category-name>" --category-description "<category-description>"
 ```
 
 where:
 
-- `<repository-name>`: the name of the repository whose description will be set. If you ommit this options, you will change the description of your default repository.
-- `<repository-description>`: the description to set
+- `<category-name>`: the name of the category whose description will be set. If you ommit this options, you will change the description of your default category.
+- `<category-description>`: the description to set
 
-### List your repositories
+### List your categories
 
-To see all your repositories use the `order-repositories` command as shown below:
+To see all your categories use the `order-categories` command as shown below:
 
 ```bash
-$ stup list-repositories
+$ stup list-categories
 
 # or the equivalent
 
-$ stup --list-repositories
+$ stup --list-categories
 ```
 
-### Change the order of repositories
+### Change the order of categories
 
-To change the order of your repositories (affecting the order with which the notes are shown) use the `order-repositories` command as shown below:
+To change the order of your categories (affecting the order with which the notes are shown) use the `order-categories` command as shown below:
 
 ```bash
-$ stup order-repositories
+$ stup order-categories
 
 # or the equivalent
 
-$ stup --order-repositories
+$ stup --order-categories
 ```
 
-This command opens the repositories registry file in your editor and you can change the order by moving the repository names up and down.
+This command opens the categories registry file in your editor and you can change the order by moving the category names up and down.
 
 ## Future work
 
@@ -355,12 +355,12 @@ New features that are on the top of my list for `stup`:
 * Ability to [search notes](https://github.com/iridakos/stup/issues/7)
 * Ability to [export notes](https://github.com/iridakos/stup/issues/8) to a file
 
-You can find more information about what is planned to be implemented browsing the [GitHub repository's issues labeled as `new feature`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
+You can find more information about what is planned to be implemented browsing the [GitHub category's issues labeled as `new feature`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
 
 ## Contributing
 
 1. Create an issue describing the purpose of the pull request unless there is one already
-2. Fork the repository ( https://github.com/iridakos/stup/fork )
+2. Fork the category ( https://github.com/iridakos/stup/fork )
 3. Create your feature branch (`git checkout -b my-new-feature`)
 4. Commit your changes (`git commit -am 'Add some feature'`)
 5. Push to the branch (`git push origin my-new-feature`)

@@ -85,17 +85,17 @@ execute()
     configure)
       execute_configure
       ;;
-    add_repository)
-      execute_add_repository
+    add_category)
+      execute_add_category
       ;;
-    list_repositories)
-      execute_list_repositories
+    list_categories)
+      execute_list_categories
       ;;
-    order_repositories)
-      execute_order_repositories
+    order_categories)
+      execute_order_categories
       ;;
-    set_repository_description)
-      execute_set_repository_description
+    set_category_description)
+      execute_set_category_description
       ;;
     log)
       execute_log
@@ -117,18 +117,18 @@ execute_show()
   resolve_date
   extract_date_components
 
-  if [[ $REPOSITORY ]]; then
-    target_file=$(resolve_target_file "$REPOSITORY")
+  if [[ $CATEGORY ]]; then
+    target_file=$(resolve_target_file "$CATEGORY")
 
     if [ -f "$target_file" ]; then
-      print_info "Displaying notes of repository $REPOSITORY added for $(success_color "$(display_date "$AT")")."
+      print_info "Displaying notes of category $CATEGORY added for $(success_color "$(display_date "$AT")")."
 
-      local description_file="$REPOSITORIES_ROOT/$REPOSITORY/description.md"
+      local description_file="$REPOSITORY_ROOT/$CATEGORY/description.md"
 
       if [ -f "$description_file" ]; then
         description="$(emphasize "$(cat $description_file)")"
       else
-        description="$(emphasize "# Notes in repository: $repository")"
+        description="$(emphasize "# Notes in category: $category")"
       fi
 
       print_warning "\n>> $description\n"
@@ -136,8 +136,8 @@ execute_show()
 
       echo ""
     else
-      print_warning "No entries found for $(display_date $AT) in repository $REPOSITORY."
-      read -e -p "Do you want to retrieve the last entries added in this repository with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      print_warning "No entries found for $(display_date $AT) in category $CATEGORY."
+      read -e -p "Do you want to retrieve the last entries added in this category with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
 
       case "$search_last_entries" in
         y|Y|yes|Yes)
@@ -149,12 +149,12 @@ execute_show()
       esac
     fi
   else
-    load_repositories
+    load_categories
 
     # Check if there are any entries for the given date
     local entries_found=false
-    for repository in "${REPOSITORIES[@]}"; do
-      local target_file=$(resolve_target_file "$repository")
+    for category in "${CATEGORIES[@]}"; do
+      local target_file=$(resolve_target_file "$category")
 
       if [ -f "$target_file" ]; then
         entries_found=true
@@ -165,28 +165,28 @@ execute_show()
     if [ $entries_found == true ]; then
       echo -e "Displaying notes added for $(display_date "$AT")."
 
-      for repository in "${REPOSITORIES[@]}"; do
-        local description_file="$REPOSITORIES_ROOT/$repository/description.md"
-        local target_file=$(resolve_target_file "$repository")
-        local empty_repo=false
+      for category in "${CATEGORIES[@]}"; do
+        local description_file="$REPOSITORY_ROOT/$category/description.md"
+        local target_file=$(resolve_target_file "$category")
+        local empty_category=false
 
         if [ -f "$description_file" ]; then
           description="$(emphasize "$(cat $description_file)")"
         else
-          description="$(emphasize "# Notes in repository: $repository")"
+          description="$(emphasize "# Notes in category: $category")"
         fi
 
         if [ -f "$target_file" ]; then
           IFS=$'\n' read -d '' -r -a contents < <(cat "$target_file" | tr -d '[:space:]')
 
           if [ ${#contents[@]} -eq 0 ]; then
-            empty_repo=true
+            empty_category=true
           fi
         else
-          empty_repo=true
+          empty_category=true
         fi
 
-        if [ "$empty_repo" = "true" ]; then
+        if [ "$empty_category" = "true" ]; then
           if [ "$INCLUDE_EMPTY" = true ]; then
             print_warning "\n $description\n"
             print_error "   None."
@@ -199,7 +199,7 @@ execute_show()
 
       echo ""
     else
-      print_warning "No entries found for $(display_date $AT) in any repository."
+      print_warning "No entries found for $(display_date $AT) in any category."
       read -e -p "Do you want to retrieve the last entries added with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
 
       case "$search_last_entries" in
@@ -217,7 +217,7 @@ execute_show()
 # Adds notes to a specific date
 execute_add()
 {
-  resolve_required_repository
+  resolve_required_category
   resolve_date
   extract_date_components
 
@@ -229,7 +229,7 @@ execute_add()
     exit 1
   fi
 
-  target_file="$(resolve_target_file $REPOSITORY)"
+  target_file="$(resolve_target_file $CATEGORY)"
 
   if ! [ -f "$target_file" ]; then
     mkdir -p "${target_file%/*}" && touch "$target_file"
@@ -239,22 +239,22 @@ execute_add()
     echo "- $item" >> $target_file
   done
 
-  echo -e "Successfully added $(emphasize "$number_of_notes") notes in repository $(emphasize "$REPOSITORY") for $(display_date $AT)"
+  echo -e "Successfully added $(emphasize "$number_of_notes") notes in category $(emphasize "$CATEGORY") for $(display_date $AT)"
 }
 
 # Opens the file keeping the notes of a specific date for edit in user's default editor
 execute_edit()
 {
-  resolve_required_repository
+  resolve_required_category
   resolve_date
   extract_date_components
 
-  local target_file="$(resolve_target_file "$REPOSITORY")"
+  local target_file="$(resolve_target_file "$CATEGORY")"
 
   print_info "About to edit: $target_file"
 
   if ! [ -f "$target_file" ]; then
-    print_warning "Notes for repository "$REPOSITORY" on $(display_date "$AT") does not exist."
+    print_warning "Notes for category "$CATEGORY" on $(display_date "$AT") does not exist."
     read -e -p ">>> Type yes|y to create and edit the file or anything else to abort: " response
 
     if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
@@ -273,40 +273,40 @@ execute_edit()
   $STUP_EDITOR "$target_file"
 }
 
-# Adds a repository
-execute_add_repository()
+# Adds a category
+execute_add_category()
 {
-  if [ -z "$REPOSITORY_NAME" ]; then
-    print_error "Missing required argument --repository-name"
+  if [ -z "$CATEGORY_NAME" ]; then
+    print_error "Missing required argument --category-name"
     exit 1
   fi
 
-  if [ -d "$REPOSITORIES_ROOT/$REPOSITORY_NAME" ]; then
-    print_warning "Repository '$REPOSITORY_NAME' directory already exists. Ensuring its presence in the repositories configuration file as well."
+  if [ -d "$REPOSITORY_ROOT/$CATEGORY_NAME" ]; then
+    print_warning "Category '$CATEGORY_NAME' directory already exists. Ensuring its presence in the categories configuration file as well."
   else
-    mkdir -p "$REPOSITORIES_ROOT/$REPOSITORY_NAME"
-    print_success "Successfully created repository '$REPOSITORY_NAME'"
+    mkdir -p "$REPOSITORY_ROOT/$CATEGORY_NAME"
+    print_success "Successfully created category '$CATEGORY_NAME'"
   fi
 
-  store_repository_configuration "$REPOSITORY_NAME"
+  store_category_configuration "$CATEGORY_NAME"
 
-  if ! [ -z "$REPOSITORY_DESCRIPTION" ]; then
-    echo "$REPOSITORY_DESCRIPTION" > "$REPOSITORIES_ROOT/$REPOSITORY_NAME/description.md"
+  if ! [ -z "$CATEGORY_DESCRIPTION" ]; then
+    echo "$CATEGORY_DESCRIPTION" > "$REPOSITORY_ROOT/$CATEGORY_NAME/description.md"
   fi
 }
 
-# Shows current repositories
-execute_list_repositories()
+# Shows current categories
+execute_list_categories()
 {
-  load_repositories
+  load_categories
 
-  printf '%s\n' "${REPOSITORIES[@]}"
+  printf '%s\n' "${CATEGORIES[@]}"
 }
 
-# Opens the repositories configuration file for edit
-execute_order_repositories()
+# Opens the categories configuration file for edit
+execute_order_categories()
 {
-  local conf="$(resolve_repositories_configuration_file)"
+  local conf="$(resolve_categories_configuration_file)"
 
   if ! [ -f "$conf" ]; then
     print_error "problem"
@@ -320,20 +320,20 @@ execute_order_repositories()
   $STUP_EDITOR "$conf"
 }
 
-# Updates the description of a given repository
-execute_set_repository_description()
+# Updates the description of a given category
+execute_set_category_description()
 {
-  if [ -z "$REPOSITORY_DESCRIPTION" ]; then
-    echo "Missing required argument --repository-description"
+  if [ -z "$CATEGORY_DESCRIPTION" ]; then
+    echo "Missing required argument --category-description"
     exit 1
   fi
 
-  if [ -z "$REPOSITORY" ]; then
-    echo "No repository specified. Changing the default: $DEFAULT_REPOSITORY"
-    REPOSITORY="$DEFAULT_REPOSITORY"
+  if [ -z "$CATEGORY" ]; then
+    echo "No category specified. Changing the default: $DEFAULT_CATEGORY"
+    CATEGORY="$DEFAULT_CATEGORY"
   fi
 
-  echo -e "$REPOSITORY_DESCRIPTION" > "$REPOSITORIES_ROOT/$REPOSITORY/description.md"
+  echo -e "$CATEGORY_DESCRIPTION" > "$REPOSITORY_ROOT/$CATEGORY/description.md"
 }
 
 # Configures stup via a wizard
@@ -342,13 +342,13 @@ execute_configure()
   if ! [ -f "$CONFIG_FILE" ]; then
     fist_time=true
     touch -a "$CONFIG_FILE"
-    echo -e "repositories_root=$HOME/stup\ndefault_repository=main\n" >> $CONFIG_FILE
+    echo -e "categories_root=$HOME/stup\ndefault_category=main\n" >> $CONFIG_FILE
   fi
 
   load_configuration
 
-  wizard "repositories_root"
-  wizard "default_repository"
+  wizard "categories_root"
+  wizard "default_category"
   wizard "stup_editor"
 
   store_configuration
@@ -356,13 +356,13 @@ execute_configure()
   exit 0
 }
 
-# Logs note entries per date/repository
+# Logs note entries per date/category
 execute_log()
 {
-  load_repositories
+  load_categories
   extract_from_to_dates
 
-  IFS=$'\n' read -d '' -r dates < <(find $REPOSITORIES_ROOT -path "$REPOSITORIES_ROOT/*/*/*/*.md" -exec sh -c 'for f do basename -- "$f" .md;done' sh {} + | sort -u -r)
+  IFS=$'\n' read -d '' -r dates < <(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md" -exec sh -c 'for f do basename -- "$f" .md;done' sh {} + | sort -u -r)
 
   if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
@@ -387,19 +387,19 @@ execute_log()
     output+="$(printf "%-10s %s" "Date:" "$(emphasize "$(display_date "$AT")")")"
     output+="\n"
 
-    local repository_count=0
+    local category_count=0
 
-    for repository in "${REPOSITORIES[@]}"; do
-      local target_file="$(resolve_target_file "$repository")"
+    for category in "${CATEGORIES[@]}"; do
+      local target_file="$(resolve_target_file "$category")"
 
       if [ -f "$target_file" ]; then
-        repository_count=$((repository_count + 1))
+        category_count=$((category_count + 1))
 
-        if [ "$repository_count" -gt "1" ]; then
+        if [ "$category_count" -gt "1" ]; then
           output+="\n"
         fi
 
-        output+="$(printf "%-10s %s" "Category:" "$(print_warning "$repository")")"
+        output+="$(printf "%-10s %s" "Category:" "$(print_warning "$category")")"
         output+="\n\n"
         output+="$(sed -e 's/^-/•/' -e 's/^/           /' "$target_file")\n"
       fi
@@ -430,26 +430,26 @@ ensure_configured()
 
   load_configuration
 
-  if [ -z "$REPOSITORIES_ROOT" ]; then
-    print_error "Invalid stup configuration - missing repositories root"
+  if [ -z "$REPOSITORY_ROOT" ]; then
+    print_error "Invalid stup configuration - missing categories root"
     print_hint "Use \"stup --configure\" to re-configure stup"
     exit 1
   fi
 
-  if [ -z "$DEFAULT_REPOSITORY" ]; then
-    print_error "Invalid stup configuration - missing default repository"
+  if [ -z "$DEFAULT_CATEGORY" ]; then
+    print_error "Invalid stup configuration - missing default category"
     print_hint "Use \"stup --configure\" to re-configure stup"
     exit 1
   fi
 
-  if ! [ -d "$REPOSITORIES_ROOT" ]; then
-    print_error "Invalid stup configuration - repositories root directory does not exist"
+  if ! [ -d "$REPOSITORY_ROOT" ]; then
+    print_error "Invalid stup configuration - categories root directory does not exist"
     print_hint "Use \"stup --configure\" to re-configure stup"
     exit 1
   fi
 
-  if ! [ -f "$(resolve_repositories_configuration_file)" ]; then
-    print_error "Invalid stup configuration - missing repositories configuration file"
+  if ! [ -f "$(resolve_categories_configuration_file)" ]; then
+    print_error "Invalid stup configuration - missing categories configuration file"
     print_hint "Use \"stup --configure\" to re-configure stup"
     exit 1
   fi
@@ -496,40 +496,40 @@ parse_options()
         AT="$2"
         shift 2
         ;;
-      --add-repository|add-repository)
-        COMMAND="add_repository"
+      --add-category|add-category)
+        COMMAND="add_category"
         shift
         ;;
-      --order-repositories|order-repositories)
-        COMMAND="order_repositories"
+      --order-categories|order-categories)
+        COMMAND="order_categories"
         shift
         ;;
-      --set-repository-description|set-repository-description)
-        COMMAND="set_repository_description"
+      --set-category-description|set-category-description)
+        COMMAND="set_category_description"
         shift
         ;;
-      --list-repositories|list-repositories|repositories)
-        COMMAND="list_repositories"
+      --list-categories|list-categories|categories)
+        COMMAND="list_categories"
         shift
         ;;
-      --repository-name)
-        REPOSITORY_NAME="$2"
+      --category-name)
+        CATEGORY_NAME="$2"
         shift 2
         ;;
-      --repository-description)
-        REPOSITORY_DESCRIPTION="$2"
+      --category-description)
+        CATEGORY_DESCRIPTION="$2"
         shift 2
         ;;
-      -r|--repository)
+      -c|--category)
         load_configuration
-        load_repositories
+        load_categories
 
-        if [[ ! " ${REPOSITORIES[@]} " =~ " ${2} " ]]; then
-          print_error "Repository "$2" does not exist."
+        if [[ ! " ${CATEGORIES[@]} " =~ " ${2} " ]]; then
+          print_error "Category "$2" does not exist."
           exit 1
         fi
 
-        REPOSITORY="$2"
+        CATEGORY="$2"
         shift 2
         ;;
       -n|--note)
@@ -564,81 +564,81 @@ parse_options()
 wizard()
 {
   case "$1" in
-    repositories_root)
-      if [ -z "$REPOSITORIES_ROOT" ]; then
-        REPOSITORIES_ROOT="$HOME/stup"
+    categories_root)
+      if [ -z "$REPOSITORY_ROOT" ]; then
+        REPOSITORY_ROOT="$HOME/stup"
       fi
 
       if [[ "$2" ]]; then
         print_error "$2"
       else
-        print_info "Please specify which directory will be the root of all the repositories stup will be using to store your notes."
-        print_info "By default, the notes will be stored in $REPOSITORIES_ROOT."
+        print_info "Please specify which directory stup will be using to store your notes."
+        print_info "By default, the notes will be stored in $REPOSITORY_ROOT."
       fi
 
-      read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_repository_root
-      new_repository_root=$(echo -e "${new_repository_root}" | tr -d '[:space:]')
+      read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_category_root
+      new_category_root=$(echo -e "${new_category_root}" | tr -d '[:space:]')
 
-      case "$new_repository_root" in
+      case "$new_category_root" in
         "")
           print_success "Keeping default directory."
-          mkdir -p "$REPOSITORIES_ROOT"
-          touch -a "$(resolve_repositories_configuration_file)"
+          mkdir -p "$REPOSITORY_ROOT"
+          touch -a "$(resolve_categories_configuration_file)"
           ;;
         *)
           {
-            new_repository_root="${new_repository_root/#\~/$HOME}"
-            new_repository_root=$(readlink -f "$new_repository_root")
+            new_category_root="${new_category_root/#\~/$HOME}"
+            new_category_root=$(readlink -f "$new_category_root")
 
-            mkdir -p "$new_repository_root"
+            mkdir -p "$new_category_root"
 
-            new_repository_root=$(builtin cd "$new_repository_root" 2>/dev/null && pwd)
+            new_category_root=$(builtin cd "$new_category_root" 2>/dev/null && pwd)
 
-            if [[ -d "$new_repository_root" ]]; then
-              REPOSITORIES_ROOT="$new_repository_root"
-              touch -a "$(resolve_repositories_configuration_file)"
+            if [[ -d "$new_category_root" ]]; then
+              REPOSITORY_ROOT="$new_category_root"
+              touch -a "$(resolve_categories_configuration_file)"
             else
-              wizard "repositories_root" "Failed to create the new repository root."
+              wizard "categories_root" "Failed to create the new category root."
             fi
           } || {
-            wizard "repositories_root" "Failed to create the new repository root, make sure it's a valid path."
+            wizard "categories_root" "Failed to create the new category root, make sure it's a valid path."
           }
           ;;
       esac
       ;;
-    default_repository)
-      if [ -z "$DEFAULT_REPOSITORY" ]; then
-        DEFAULT_REPOSITORY="main"
+    default_category)
+      if [ -z "$DEFAULT_CATEGORY" ]; then
+        DEFAULT_CATEGORY="main"
       fi
 
       if [[ "$2" ]]; then
         print_error "$2"
       else
-        print_info "Please specify which repository will be your default one (if you have many)."
-        print_info "The default repository is currently set to \"$DEFAULT_REPOSITORY\"."
+        print_info "Please specify which category will be your default one (if you have many)."
+        print_info "The default category is currently set to \"$DEFAULT_CATEGORY\"."
       fi
 
-      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_repository
-      new_default_repository=$(echo -e "${new_default_repository}" | tr -d '[:space:]')
+      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_category
+      new_default_category=$(echo -e "${new_default_category}" | tr -d '[:space:]')
 
-      case "$new_default_repository" in
+      case "$new_default_category" in
         "")
-          print_success "Default repository still set to \"$DEFAULT_REPOSITORY\"."
-          store_repository_configuration "$DEFAULT_REPOSITORY"
+          print_success "Default category still set to \"$DEFAULT_CATEGORY\"."
+          store_category_configuration "$DEFAULT_CATEGORY"
           ;;
         *)
           {
-            mkdir -p "$REPOSITORIES_ROOT/$new_default_repository"
+            mkdir -p "$REPOSITORY_ROOT/$new_default_category"
 
-            if [[ -d "$REPOSITORIES_ROOT/$new_default_repository" ]]; then
-              DEFAULT_REPOSITORY="$new_default_repository"
-              print_success "Default repository set to $DEFAULT_REPOSITORY"
-              store_repository_configuration "$DEFAULT_REPOSITORY"
+            if [[ -d "$REPOSITORY_ROOT/$new_default_category" ]]; then
+              DEFAULT_CATEGORY="$new_default_category"
+              print_success "Default category set to $DEFAULT_CATEGORY"
+              store_category_configuration "$DEFAULT_CATEGORY"
             else
-              wizard "default_repository" "Failed to create the default repository's directory. Make sure the name is also a valid directory name."
+              wizard "default_category" "Failed to create the default category's directory. Make sure the name is also a valid directory name."
             fi
           } || {
-            wizard "default_repository" "Failed to create the directory for the new default repository. Make sure the name is also a valid directory name."
+            wizard "default_category" "Failed to create the directory for the new default category. Make sure the name is also a valid directory name."
           }
           ;;
       esac
@@ -696,11 +696,11 @@ load_configuration()
 handle_configuration_variable()
 {
   case "$1" in
-    repositories_root)
-      REPOSITORIES_ROOT="$2"
+    categories_root)
+      REPOSITORY_ROOT="$2"
       ;;
-    default_repository)
-      DEFAULT_REPOSITORY="$2"
+    default_category)
+      DEFAULT_CATEGORY="$2"
       ;;
     stup_editor)
       STUP_EDITOR="$2"
@@ -717,28 +717,28 @@ resolve_configuration_file()
 # Stores configuration of stup
 store_configuration()
 {
-  echo -e "repositories_root=$REPOSITORIES_ROOT
-default_repository=$DEFAULT_REPOSITORY
+  echo -e "categories_root=$REPOSITORY_ROOT
+default_category=$DEFAULT_CATEGORY
 stup_editor=$STUP_EDITOR
 " > $CONFIG_FILE
 }
 
-store_repository_configuration()
+store_category_configuration()
 {
-  load_repositories
+  load_categories
 
-  local repository_to_store="$1"
+  local category_to_store="$1"
 
-  if ! $(array_contains REPOSITORIES "$repository_to_store") ; then
-    echo "$repository_to_store" >> "$(resolve_repositories_configuration_file)"
+  if ! $(array_contains CATEGORIES "$category_to_store") ; then
+    echo "$category_to_store" >> "$(resolve_categories_configuration_file)"
   fi
 }
 
-# Properly sets the current repository to the default one unless already specified
-resolve_required_repository()
+# Properly sets the current category to the default one unless already specified
+resolve_required_category()
 {
-  if [[ -z "$REPOSITORY" ]]; then
-    REPOSITORY="$DEFAULT_REPOSITORY"
+  if [[ -z "$CATEGORY" ]]; then
+    CATEGORY="$DEFAULT_CATEGORY"
   fi
 }
 
@@ -798,10 +798,10 @@ extract_from_to_dates()
   esac
 }
 
-# Loads the currently registered repositories
-load_repositories()
+# Loads the currently registered categories
+load_categories()
 {
-  IFS=$'\n' read -d '' -r -a REPOSITORIES < "$(resolve_repositories_configuration_file)"
+  IFS=$'\n' read -d '' -r -a CATEGORIES < "$(resolve_categories_configuration_file)"
 }
 
 # Checks if array has an element
@@ -850,10 +850,10 @@ resolve_last_at()
   ########################
   # search in month days #
   ########################
-  if [[ $REPOSITORY ]]; then
-    target_path="$REPOSITORIES_ROOT/$REPOSITORY/$YEAR/$MONTH"
+  if [[ $CATEGORY ]]; then
+    target_path="$REPOSITORY_ROOT/$CATEGORY/$YEAR/$MONTH"
   else
-    target_path="$REPOSITORIES_ROOT/*/$YEAR/$MONTH"
+    target_path="$REPOSITORY_ROOT/*/$YEAR/$MONTH"
   fi
 
   while IFS= read -r filename; do
@@ -861,15 +861,15 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
 
   #########################
   # search in year months #
   #########################
-  if [[ $REPOSITORY ]]; then
-    target_path="$REPOSITORIES_ROOT/$REPOSITORY/$YEAR/*"
+  if [[ $CATEGORY ]]; then
+    target_path="$REPOSITORY_ROOT/$CATEGORY/$YEAR/*"
   else
-    target_path="$REPOSITORIES_ROOT/*/$YEAR/*"
+    target_path="$REPOSITORY_ROOT/*/$YEAR/*"
   fi
 
   while IFS= read -r filename; do
@@ -877,15 +877,15 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
 
   ###################
   # search in years #
   ###################
-  if [[ $REPOSITORY ]]; then
-    target_path="$REPOSITORIES_ROOT/$REPOSITORY/*/*"
+  if [[ $CATEGORY ]]; then
+    target_path="$REPOSITORY_ROOT/$CATEGORY/*/*"
   else
-    target_path="$REPOSITORIES_ROOT/*/*/*"
+    target_path="$REPOSITORY_ROOT/*/*/*"
   fi
 
   while IFS= read -r filename; do
@@ -893,7 +893,7 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORIES_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
 
   # Exit if no previous notes file found.
   if [ -z "$AT" ]; then
@@ -909,16 +909,16 @@ display_date()
   echo $(success_color "$(date --date "$1" +"%A %B %d, %Y")")
 }
 
-# Resolves the filename of the stup entry for a specific date at a specific repository
+# Resolves the filename of the stup entry for a specific date at a specific category
 resolve_target_file()
 {
-  echo "$REPOSITORIES_ROOT/$1/$YEAR/$MONTH/$YEAR-$MONTH-$DAY.md"
+  echo "$REPOSITORY_ROOT/$1/$YEAR/$MONTH/$YEAR-$MONTH-$DAY.md"
 }
 
-# Resolves the filename of the repositories configuration
-resolve_repositories_configuration_file()
+# Resolves the filename of the categories configuration
+resolve_categories_configuration_file()
 {
-  echo "$REPOSITORIES_ROOT/repositories.conf"
+  echo "$REPOSITORY_ROOT/categories.conf"
 }
 
 #####################
