@@ -30,7 +30,13 @@ Follow the wizard to define:
 
 ### Add notes
 
-To add notes use the `add` command as below:
+To add a new note use the `add` command.
+
+```bash
+$ stup add @ yesterday -n "A note" -n "Another note"
+```
+
+The full version of the command:
 
 ```bash
 stup add @|--at|-@ <when> -n|--note "<note text>" -c|--category "<category-name>"
@@ -38,11 +44,11 @@ stup add @|--at|-@ <when> -n|--note "<note text>" -c|--category "<category-name>
 
 where:
   * `<when>`: specifies in which date the notes should be added. Its value can be:
-    * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@`|`--at`|`-@` option
+    * any of the words: `today`, `tomorrow`, `yesterday` in which case you can omit the `@`|`--at`|`-@` option
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
-    * **if you ommit this option, `stup` by default will save the notes in the current date**
+    * **if you omit this option, `stup` by default will save the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
-  * `-c` or `--category`: is the category option (optional). **If ommited, notes will be saved to your default category**
+  * `-c` or `--category`: is the category option (optional). **If omitted, notes will be saved to your default category**
     * `<category-name>`: the name of the category in which the notes will be added
 
 #### Examples
@@ -108,20 +114,26 @@ $ stup add -c "blocking" -n "Can't continue unless"
 
 ### Show notes
 
-To view your notes use the `show` command as below:
+To view your notes on a given date, use the `show` command.
 
 ```bash
-$ stup add @ <when> -c|--category "<category-name>"
+$ stup show
+```
+
+The full version of the command is:
+
+```bash
+$ stup show @ <when> -c|--category "<category-name>"
 ```
 
 where:
 
   * `@` or `--at` or `-@`: is the date option
     * `<when>`: specifies which date's notes should be shown. Its value can be:
-      * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@` option
+      * any of the words: `today`, `tomorrow`, `yesterday` in which case you can omit the `@` option
       * a date string in the form: YYYY-MM-DD, example: 2020-04-12
-    * **if you ommit this option, `stup` by default will show you your yesterday's notes**
-  * `<category-name>`: the name of the category whose notes will be shown. **You may ommit this option if you want to see notes from all the categories**.
+    * **if you omit this option, `stup` by default will show you your yesterday's notes**
+  * `<category-name>`: the name of the category whose notes will be shown. **You may omit this option if you want to see notes from all the categories**.
 
 If you don't specify a category and you have more than one, the default behaviour is to show notes only from the categories that have notes the specified day.
 If you prefer though to show the "empty" categories as well, you may use the `--include-empty`.
@@ -184,50 +196,15 @@ $ stup show @ 2020-04-01
 $ stup show today -r "pull-requests"
 ```
 
-### Log notes
-
-You can view all notes logged during a specific period using the `log` command as shown below:
-
-```bash
-$ stup log --from <from-date> --to <to-date>
-
-# or using an alias
-
-$ stup log <week|previous-week|month|previous-month|year|previous-year>
-```
-
-where:
-
-- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
-  - this is optional and if ommited the notes to be displayed won't have be **added after a specific date**
-- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
-  - this is also optional and if ommited the notes to be displayed won't have be **added before a specific date**
-
-In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
-
-#### Examples
-
-##### Log of this week's notes
-
-```bash
-$ stup log week
-```
-
-##### Log of previous week's notes
-
-```bash
-$ stup log previous-week
-```
-
-##### Log of notes added in a specific period
-
-```bash
-$ stup log --from 2020-01-15 --to 2020-02-01
-```
-
 ### Edit notes
 
-To manually edit notes added in a specific date use the `edit` command as below:
+To manually edit notes added in a specific date use the `edit` command.
+
+```bash
+$ stup edit yesterday
+```
+
+The full version of the command as below:
 
 ```bash
 stup edit @|--at|-@ <when> -c|--category "<category-name>"
@@ -235,11 +212,11 @@ stup edit @|--at|-@ <when> -c|--category "<category-name>"
 
 where:
   * `<when>`: specifies in which date the notes should be added. Its value can be:
-    * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@`|`--at`|`-@` option
+    * any of the words: `today`, `tomorrow`, `yesterday` in which case you can omit the `@`|`--at`|`-@` option
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
-    * **if you ommit this option, `stup` by default will edit the notes in the current date**
+    * **if you omit this option, `stup` by default will edit the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
-  * `-r` or `--category`: is the category option (optional). **If ommited, you will edit the notes of your default category**
+  * `-r` or `--category`: is the category option (optional). **If omitted, you will edit the notes of your default category**
     * `<category-name>`: the name of the category in which the notes will be added
 
 **Note:** If there are no notes for a specific date and category, you will be asked if you want to create and edit the file anyway.
@@ -264,6 +241,54 @@ $ stup edit @ 2020-03-24
 
 # Editing notes saved on March 24th, 2020 for the category with name "blocking"
 $ stup edit @ 2020-03-24 -r "blocking"
+```
+
+
+### Log notes
+
+To list your notes for a given period, use the `log` command.
+
+```bash
+$ stup log previous-week
+```
+
+The full version of the command:
+
+```bash
+$ stup log --from <from-date> --to <to-date>
+
+# or using an alias
+
+$ stup log <week|previous-week|month|previous-month|year|previous-year>
+```
+
+where:
+
+- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is optional and if omitted the notes to be displayed won't have be **added after a specific date**
+- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is also optional and if omitted the notes to be displayed won't have be **added before a specific date**
+
+In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
+
+#### Examples
+
+##### Log of this week's notes
+
+```bash
+$ stup log week
+```
+
+##### Log of previous week's notes
+
+```bash
+$ stup log previous-week
+```
+
+##### Log of notes added in a specific period
+
+```bash
+$ stup log --from 2020-01-15 --to 2020-02-01
 ```
 
 ### Add a new category
@@ -318,7 +343,7 @@ $ stup set-category-description --category-name "<category-name>" --category-des
 
 where:
 
-- `<category-name>`: the name of the category whose description will be set. If you ommit this options, you will change the description of your default category.
+- `<category-name>`: the name of the category whose description will be set. If you omit this options, you will change the description of your default category.
 - `<category-description>`: the description to set
 
 ### List your categories

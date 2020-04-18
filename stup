@@ -53,11 +53,11 @@ stup()
   resolve_configuration_file
   parse_options "$@"
 
-  if [ -z "$COMMAND" ]; then
+  if [ -z "$COMMAND" ] && (! [ "$USAGE" = "true" ] ); then
     COMMAND="show"
   fi
 
-  if [ "$COMMAND" != "configure" ]; then
+  if [ "$COMMAND" != "configure" ] && [ "$USAGE" != "true" ]; then
     ensure_configured
     load_configuration
   fi
@@ -72,6 +72,11 @@ stup()
 # Issues the execution of the proper command
 execute()
 {
+  if [ "$USAGE" = "true" ]; then
+    execute_usage
+    return
+  fi
+
   case "$COMMAND" in
     show)
       execute_show
@@ -101,7 +106,7 @@ execute()
       execute_log
       ;;
     *)
-      print_error "Can't execute command: '$COMMAND'"
+      print_error "Unknown command: '$COMMAND'"
       exit 1
       ;;
   esac
@@ -415,6 +420,20 @@ execute_log()
   fi
 }
 
+# Prints usage information
+execute_usage()
+{
+  local output;
+
+  if [ -z "$COMMAND" ]; then
+    output="$(show_usage_all)"
+  else
+    output=$("show_usage_$COMMAND")
+  fi
+
+  echo "$output" | more
+}
+
 ##########################
 # Command helper methods #
 ##########################
@@ -496,6 +515,10 @@ parse_options()
         AT="$2"
         shift 2
         ;;
+      -h|--help|usage)
+        USAGE="true"
+        shift
+        ;;
       --add-category|add-category)
         COMMAND="add_category"
         shift
@@ -553,7 +576,7 @@ parse_options()
         exit 1
         ;;
       *)
-        echo "Error: Unsupported command \"$1\"" >&2
+        echo "Error: Unknown command \"$1\"" >&2
         exit 1
         ;;
     esac
@@ -919,6 +942,237 @@ resolve_target_file()
 resolve_categories_configuration_file()
 {
   echo "$REPOSITORY_ROOT/categories.conf"
+}
+
+#################
+# Usage helpers #
+#################
+
+# Shows usage for all commands
+show_usage_all()
+{
+  echo -e "usage: stup command [<options>]"
+  echo -e "List of availabe commands:\n"
+
+  echo -e "$(emphasize "show")"
+  echo -e "$(show_usage_show)" | sed -e 's/^/  /'
+  echo ""
+  echo -e "$(emphasize "add")"
+  echo -e "$(show_usage_add)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "edit")"
+  echo -e "$(show_usage_edit)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "log")"
+  echo -e "$(show_usage_log)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "add-category")"
+  echo -e "$(show_usage_add_category)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "list-categories")"
+  echo -e "$(show_usage_list_categories)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "set-category-description")"
+  echo -e "$(show_usage_set_category_description)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "order-categories")"
+  echo -e "$(show_usage_order_categories)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "usage")"
+  echo -e "$(show_usage_usage)" | sed -e 's/^/  /'
+}
+
+# Shows usage for the show command
+show_usage_show()
+{
+  echo -e "Shows notes for a specific date.
+This is the default stup command being executed if none is specified.\n
+usage: stup show [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "@, -@, --at"     "Specifies the date whose notes will be shown."
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "If you omit setting a date, stup will show yesterday's notes by default."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup show @ today"
+  printf "\n%15s   %s" " "               "  stup show @ 2020-04-18"
+  printf "\n%15s   %s" "yesterday"       "Alias to set the date to yesterday"
+  printf "\n%15s   %s" " "               "Example: stup show yesterday"
+  printf "\n%15s   %s" "today"           "Alias to set the date to today"
+  printf "\n%15s   %s" " "               "Example: stup show today"
+  printf "\n%15s   %s" "tomorrow"        "Alias to set the date to tomorrow"
+  printf "\n%15s   %s" " "               "Example: stup show tomorrow"
+  printf "\n%15s   %s" "-c, --category" "Specifies the category whose notes will be shown."
+  printf "\n%15s   %s" " "              "If omitted, notes from all categories will be shown"
+  printf "\n%15s   %s" " "              "Example: stup show -c work"
+}
+
+# Shows usage for the add command
+show_usage_add()
+{
+  echo -e "Adds notes for a specific date to a specific category.
+usage: stup add [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "@, -@, --at"     "Specifies in which date stup will add the notes."
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "If you omit setting a date, stup will add the note(s) in today's date."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup add @ today ..."
+  printf "\n%15s   %s" " "               "  stup add @ 2020-04-18 ..."
+  printf "\n%15s   %s" "yesterday"       "Alias to set the date to yesterday"
+  printf "\n%15s   %s" " "               "Example: stup add yesterday ..."
+  printf "\n%15s   %s" "today"           "Alias to set the date to today"
+  printf "\n%15s   %s" " "               "Example: stup add today ..."
+  printf "\n%15s   %s" "tomorrow" "Alias to set the date to tomorrow"
+  printf "\n%15s   %s" " "               "Example: stup add tomorrow ..."
+  printf "\n%15s   %s" "-c, --category" "Specifies the category in which stup will save the notes."
+  printf "\n%15s   %s" " "               "If omitted, notes will be saved in your default category"
+  printf "\n%15s   %s" " "               "Example: stup add -c work ..."
+  printf "\n%15s   %s" "-n, --note"      "Specifies the note to be added."
+  printf "\n%15s   %s" " "               "This is a repeatable option so you may set it multiple times to add more than"
+  printf "\n%15s   %s" " "               "one notes at once."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup add today -n \"a note\""
+  printf "\n%15s   %s" " "               "  stup add @ 2020-10-05 -n \"first note\" -n \"second note\""
+}
+
+# Shows usage for the edit command
+show_usage_edit()
+{
+  echo -e "Opens user's editor to manually edit notes for a specific date and category.
+usage: stup edit [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "@, -@, --at"     "Specifies the date whose notes will be manually edited."
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "If you omit setting a date, stup will default to today's date."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup edit @ today ..."
+  printf "\n%15s   %s" " "               "  stup edit @ 2020-04-18 ..."
+  printf "\n%15s   %s" "yesterday"       "Alias to set the date to yesterday"
+  printf "\n%15s   %s" " "               "Example: stup edit yesterday ..."
+  printf "\n%15s   %s" "today"           "Alias to set the date to today"
+  printf "\n%15s   %s" " "               "Example: stup edit today ..."
+  printf "\n%15s   %s" "tomorrow" "Alias to set the date to tomorrow"
+  printf "\n%15s   %s" " "               "Example: stup edit tomorrow ..."
+  printf "\n%15s   %s" "-c, --category" "Specifies the category whose notes will be manually edited."
+  printf "\n%15s   %s" " "               "If omitted, stup will use your default category"
+  printf "\n%15s   %s" " "               "Example: stup edit -c work ..."
+}
+
+# Shows usage for the log command
+show_usage_log()
+{
+  echo -e "Lists all notes for a period of time per date and category.
+usage: stup log [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "-f, --from"      "Specifies to list the notes from a specific date and after"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup log --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup log --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "-t, --to"       "Specifies to list the notes added before a specific date"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option"
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup log --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup log --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "week"            "Alias to list the notes of current week"
+  printf "\n%15s   %s" " "               "Example: stup log week"
+  printf "\n%15s   %s" "previous-week"   "Alias to list the notes of previous week"
+  printf "\n%15s   %s" " "               "Example: stup log previous-week"
+  printf "\n%15s   %s" "month"            "Alias to list the notes of current month"
+  printf "\n%15s   %s" " "               "Example: stup log month"
+  printf "\n%15s   %s" "previous-month"  "Alias to list the notes of current previous-month"
+  printf "\n%15s   %s" " "               "Example: stup log previous-month"
+  printf "\n%15s   %s" "year"            "Alias to list the notes of current year"
+  printf "\n%15s   %s" " "               "Example: stup log year"
+  printf "\n%15s   %s" "previous"        "Alias to list the notes of previous-year"
+  printf "\n%15s   %s" " "               "Example: stup log previous-year"
+  printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be listed."
+  printf "\n%15s   %s" " "               "If omitted, stup will list the notes of all categories."
+  printf "\n%15s   %s" " "               "Example: stup log -c work week"
+}
+
+# Shows usage for the add category command
+show_usage_add_category()
+{
+  echo -e "Adds a new category.
+usage: stup add-category [<options>]\n
+List of available options:"
+
+  printf "\n%25s   %s" "--category-name"        "Specifies the name of the category"
+  printf "\n%25s   %s" " "                      "Example: stup add-category --category-name \"meetings\""
+  printf "\n%25s   %s" "--category-description" "Specifies the description of the category"
+  printf "\n%25s   %s" " "                      "Example: stup add-category --category-name \"meetings\""
+  printf "\n%25s   %s" " "                      "         --category-description \"Meetings\""
+}
+
+# Shows usage for the set category description command
+show_usage_set_category_description()
+{
+  echo -e "Sets a description for a category.
+usage: stup set-category-description [<options>]\n
+List of available options:"
+
+  printf "\n%25s   %s" "-c, --category"         "Specifies the name of the category whose description will change"
+  printf "\n%25s   %s" " "                      "If omitted, stup will change the description of the default category"
+  printf "\n%25s   %s" " "                      "Example: stup set-category-description -c \"meetings\""
+  printf "\n%25s   %s" "--category-description" "Specifies the new description of the category"
+  printf "\n%25s   %s" " "                      "Example: stup set-category-description -c \"meetings\""
+  printf "\n%25s   %s" " "                      "         --category-description \"Work meetings\""
+}
+
+# Shows usage for the order categories command
+show_usage_order_categories()
+{
+  echo -e "Opens the categories file for manual editing to change their order.
+usage: stup order-categories\n"
+
+  echo -e "This command doesn't have any options."
+  echo -e "Changing the order of the categories inside the file will change the order that"
+  echo -e "stup uses to display the notes."
+}
+
+# Shows usage for the list categories command
+show_usage_list_categories()
+{
+  echo -e "Shows a list with your current categories.
+usage: stup list-categories\n"
+
+  echo -e "This command doesn't have any options."
+}
+
+# Shows usage for the usage command
+show_usage_usage()
+{
+  echo -e "Shows usage information.
+usage: stup <command> usage
+       stup <command> -h
+       stup <command> --help\n"
+
+  printf "\n%15s   %s" "<command>"         "Specifies the name of the category whose description will change"
+  printf "\n%15s   %s" " "                 "If omitted, stup will show usage information for all commands."
+  printf "\n%15s   %s" " "                 "Examples:"
+  printf "\n%15s   %s" " "                 "  stup add usage"
+  printf "\n%15s   %s" " "                 "  stup add -h"
+  printf "\n%15s   %s" " "                 "  stup add --help"
+  printf "\n%15s   %s" " "                 "  stup usage"
 }
 
 #####################
