@@ -550,7 +550,7 @@ wizard()
             if [[ -d "$REPOSITORIES_ROOT/$new_default_repository" ]]; then
               DEFAULT_REPOSITORY="$new_default_repository"
               print_success "Default repository set to $DEFAULT_REPOSITORY"
-              store_repository "$DEFAULT_REPOSITORY"
+              store_repository_configuration "$DEFAULT_REPOSITORY"
             else
               wizard "default_repository" "Failed to create the default repository's directory. Make sure the name is also a valid directory name."
             fi
