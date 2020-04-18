@@ -121,7 +121,10 @@ where:
       * any of the words: `today`, `tomorrow`, `yesterday` in which case you can ommit the `@` option
       * a date string in the form: YYYY-MM-DD, example: 2020-04-12
     * **if you ommit this option, `stup` by default will show you your yesterday's notes**
-  * `<repository-name>`: the name of the repository in which the notes will be added
+  * `<repository-name>`: the name of the repository whose notes will be shown. **You may ommit this option if you want to see notes from all the repositories**.
+
+If you don't specify a repository and you have more than one, the default behaviour is to show notes only from the repositories that have notes the specified day.
+If you prefer though to show the "empty" repositories as well, you may use the `--include-empty`.
 
 **Notes:**
 * the default action of `stup` is to show you your notes so you may write the command without the `show` directive (see the examples).
@@ -282,11 +285,11 @@ where:
 To see all your repositories use the `order-repositories` command as shown below:
 
 ```bash
-$ stup show-repositories
+$ stup list-repositories
 
 # or the equivalent
 
-$ stup --show-repositories
+$ stup --list-repositories
 ```
 
 ### Change the order of repositories
