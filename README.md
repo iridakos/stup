@@ -28,7 +28,7 @@ Follow the wizard to define:
 
 ## Usage
 
-### Adding notes
+### Add notes
 
 To add notes use the `add` command as below:
 
@@ -106,7 +106,7 @@ $ stup add today -n "Reviewed PR ..." -n "Merged to master..."
 $ stup add -r "blocking" -n "Can't continue unless"
 ```
 
-### Showing notes
+### Show notes
 
 To view your notes use the `show` command as below:
 
@@ -181,9 +181,9 @@ $ stup show @ 2020-04-01
 $ stup show today -r "pull-requests"
 ```
 
-### Editing notes of a specific date
+### Edit notes
 
-To edit notes added in a specific date use the `edit` command as below:
+To manually edit notes added in a specific date use the `edit` command as below:
 
 ```bash
 stup edit @|--at|-@ <when> -r|--repository "<repository-name>"
@@ -222,7 +222,7 @@ $ stup edit @ 2020-03-24
 $ stup edit @ 2020-03-24 -r "blocking"
 ```
 
-### Adding a repository
+### Add a new repository
 
 To add a new repository to save notes into use the following command.
 
@@ -264,7 +264,7 @@ where:
 
   ```
 
-### Setting a repository's description
+### Set a repository's description
 
 To set a new description or change the existing description of a repository use the following command.
 
@@ -277,9 +277,9 @@ where:
 - `<repository-name>`: the name of the repository whose description will be set. If you ommit this options, you will change the description of your default repository.
 - `<repository-description>`: the description to set
 
-### Showing your repositories
+### List your repositories
 
-To see all your repositories use the `order-repositories` command as show below:
+To see all your repositories use the `order-repositories` command as shown below:
 
 ```bash
 $ stup show-repositories
@@ -289,7 +289,7 @@ $ stup show-repositories
 $ stup --show-repositories
 ```
 
-### Changing the order of your repositories
+### Change the order of repositories
 
 To change the order of your repositories (affecting the order with which the notes are shown) use the `order-repositories` command as shown below:
 
