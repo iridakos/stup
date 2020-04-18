@@ -735,9 +735,9 @@ resolve_last_at()
   # search in month days #
   ########################
   if [[ $REPOSITORY ]]; then
-    target_path="$REPOSITORY/$YEAR/$MONTH"
+    target_path="$REPOSITORIES_ROOT/$REPOSITORY/$YEAR/$MONTH"
   else
-    target_path="*/$YEAR/$MONTH"
+    target_path="$REPOSITORIES_ROOT/*/$YEAR/$MONTH"
   fi
 
   while IFS= read -r filename; do
@@ -751,9 +751,9 @@ resolve_last_at()
   # search in year months #
   #########################
   if [[ $REPOSITORY ]]; then
-    target_path="$REPOSITORY/$YEAR/*"
+    target_path="$REPOSITORIES_ROOT/$REPOSITORY/$YEAR/*"
   else
-    target_path="*/$YEAR/*"
+    target_path="$REPOSITORIES_ROOT/*/$YEAR/*"
   fi
 
   while IFS= read -r filename; do
@@ -767,9 +767,9 @@ resolve_last_at()
   # search in years #
   ###################
   if [[ $REPOSITORY ]]; then
-    target_path="$REPOSITORY/*/*"
+    target_path="$REPOSITORIES_ROOT/$REPOSITORY/*/*"
   else
-    target_path="*/*/*"
+    target_path="$REPOSITORIES_ROOT/*/*/*"
   fi
 
   while IFS= read -r filename; do
