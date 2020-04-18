@@ -4,6 +4,8 @@
 
 The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings since its initial purpose was to cover my need for keeping my Standup notes in a convenient way.
 
+![stup Gif demo](https://raw.githubusercontent.com/iridakos/stup/master/assets/stup-0-1-0.gif)
+
 ## Installation
 
 For the moment, the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
