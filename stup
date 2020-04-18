@@ -419,15 +419,15 @@ parse_options()
         ;;
       --add-repository|add-repository)
         COMMAND="add_repository"
-        shift 1
+        shift
         ;;
       --order-repositories|order-repositories)
         COMMAND="order_repositories"
-        shift 1
+        shift
         ;;
       --set-repository-description|set-repository-description)
         COMMAND="set_repository_description"
-        shift 1
+        shift
         ;;
       --list-repositories|list-repositories|repositories)
         COMMAND="list_repositories"
