@@ -409,6 +409,10 @@ parse_options()
         COMMAND="show"
         shift
         ;;
+      --include-empty)
+        INCLUDE_EMPTY=true
+        shift
+        ;;
       --edit|edit)
         COMMAND="edit"
         shift
