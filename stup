@@ -142,7 +142,8 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in category $CATEGORY."
-      read -e -p "Do you want to retrieve the last entries added in this category with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      echo -e "Do you want to retrieve the last notes added in this category with stup?"
+      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
 
       case "$search_last_entries" in
         y|Y|yes|Yes)
@@ -205,7 +206,8 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in any category."
-      read -e -p "Do you want to retrieve the last entries added with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      echo -e "Do you want to retrieve the last notes added with stup?"
+      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
 
       case "$search_last_entries" in
         y|Y|yes|Yes)
@@ -347,7 +349,7 @@ execute_configure()
   if ! [ -f "$CONFIG_FILE" ]; then
     fist_time=true
     touch -a "$CONFIG_FILE"
-    echo -e "categories_root=$HOME/stup\ndefault_category=main\n" >> $CONFIG_FILE
+    echo -e "categories_root=$HOME/stup\ndefault_category=personal\n" >> $CONFIG_FILE
   fi
 
   load_configuration
@@ -367,7 +369,7 @@ execute_log()
   load_categories
   extract_from_to_dates
 
-  IFS=$'\n' read -d '' -r dates < <(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md" -exec sh -c 'for f do basename -- "$f" .md;done' sh {} + | sort -u -r)
+  IFS=$'\n' read -d '' -r dates < <(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | sort -u -r)
 
   if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
@@ -631,7 +633,7 @@ wizard()
       ;;
     default_category)
       if [ -z "$DEFAULT_CATEGORY" ]; then
-        DEFAULT_CATEGORY="main"
+        DEFAULT_CATEGORY="personal"
       fi
 
       if [[ "$2" ]]; then
