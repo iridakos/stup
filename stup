@@ -115,19 +115,34 @@ execute_show()
 
   if [[ $REPOSITORY ]]; then
     target_file=$(resolve_target_file "$REPOSITORY")
-    if [ -f "$target_file" ]; then
-      print_info "Displaying notes of repository $REPOSITORY added for $(success_color "$(display_date "$AT")").\n"
 
-      description_file="$REPOSITORIES_ROOT/$REPOSITORY/description.md"
+    if [ -f "$target_file" ]; then
+      echo -e "Displaying notes of repository $REPOSITORY added for $(success_color "$(display_date "$AT")")."
+
+      local description_file="$REPOSITORIES_ROOT/$REPOSITORY/description.md"
 
       if [ -f "$description_file" ]; then
-        result=$(cat $description_file)
-        echo $(emphasize "$result")
+        description="$(emphasize "$(cat $description_file)")"
+      else
+        description="$(emphasize "# Notes in repository: $repository")"
       fi
 
-      cat $target_file
+      print_info "\n>> $description\n"
+      sed -e 's/^/ /' "$target_file"
+
+      echo ""
     else
-      print_warning "No entries for repository $REPOSITORY. Searched in $target_file"
+      print_warning "No entries found for $(display_date $AT) in repository $REPOSITORY."
+      read -e -p "Do you want to retrieve the last entries added in this repository with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+
+      case "$search_last_entries" in
+        y|Y|yes|Yes)
+          resolve_last_at
+          execute_show "$AT"
+          ;;
+        *)
+          exit 0
+      esac
     fi
   else
     load_repositories
@@ -144,30 +159,41 @@ execute_show()
     done
 
     if [ $entries_found == true ]; then
-      print_info "Displaying notes added for $(display_date "$AT").\n"
+      echo -e "Displaying notes added for $(display_date "$AT")."
 
       for repository in "${REPOSITORIES[@]}"; do
-        description_file="$REPOSITORIES_ROOT/$repository/description.md"
+        local description_file="$REPOSITORIES_ROOT/$repository/description.md"
+        local target_file=$(resolve_target_file "$repository")
+        local empty_repo=false
 
         if [ -f "$description_file" ]; then
-          result=$(cat $description_file)
-          echo $(emphasize "$result")
+          description="$(emphasize "$(cat $description_file)")"
         else
-          echo "# Items of repository: $repository"
+          description="$(emphasize "# Notes in repository: $repository")"
         fi
-
-        echo ""
-
-        local target_file=$(resolve_target_file "$repository")
 
         if [ -f "$target_file" ]; then
-          cat "$target_file"
+          IFS=$'\n' read -d '' -r -a contents < <(cat "$target_file" | tr -d '[:space:]')
+
+          if [ ${#contents[@]} -eq 0 ]; then
+            empty_repo=true
+          fi
         else
-          echo -e "None."
+          empty_repo=true
         fi
 
-        echo ""
+        if [ "$empty_repo" = "true" ]; then
+          if [ "$INCLUDE_EMPTY" = true ]; then
+            print_info "\n>> $description\n"
+            print_warning "   None."
+          fi
+        else
+          print_info "\n>> $description\n"
+          sed -e 's/^/ /' "$target_file"
+        fi
       done
+
+      echo ""
     else
       print_warning "No entries found for $(display_date $AT) in any repository."
       read -e -p "Do you want to retrieve the last entries added with stup? Type y|Y|yes|Yes or anything else to exit: " search_last_entries
