@@ -184,6 +184,47 @@ $ stup show @ 2020-04-01
 $ stup show today -r "pull-requests"
 ```
 
+### Log notes
+
+You can view all notes logged during a specific period using the `log` command as shown below:
+
+```bash
+$ stup log --from <from-date> --to <to-date>
+
+# or using an alias
+
+$ stup log <week|previous-week|month|previous-month|year|previous-year>
+```
+
+where:
+
+- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is optional and if ommited the notes to be displayed won't have be **added after a specific date**
+- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is also optional and if ommited the notes to be displayed won't have be **added before a specific date**
+
+In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
+
+#### Examples
+
+##### Log of this week's notes
+
+```bash
+$ stup log week
+```
+
+##### Log of previous week's notes
+
+```bash
+$ stup log previous-week
+```
+
+##### Log of notes added in a specific period
+
+```bash
+$ stup log --from 2020-01-15 --to 2020-02-01
+```
+
 ### Edit notes
 
 To manually edit notes added in a specific date use the `edit` command as below:

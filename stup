@@ -45,6 +45,7 @@ TEXT_BLINK=$(tput blink)
 TEXT_REVERSE=$(tput smso)
 TEXT_UNDERLINE=$(tput smul)
 TEXT_NORMAL=$(tput sgr0)
+TEXT_GREY=$(tput setaf 248)
 
 # Stup entry point
 stup()
@@ -96,6 +97,9 @@ execute()
     set_repository_description)
       execute_set_repository_description
       ;;
+    log)
+      execute_log
+      ;;
     *)
       print_error "Can't execute command: '$COMMAND'"
       exit 1
@@ -117,7 +121,7 @@ execute_show()
     target_file=$(resolve_target_file "$REPOSITORY")
 
     if [ -f "$target_file" ]; then
-      echo -e "Displaying notes of repository $REPOSITORY added for $(success_color "$(display_date "$AT")")."
+      print_info "Displaying notes of repository $REPOSITORY added for $(success_color "$(display_date "$AT")")."
 
       local description_file="$REPOSITORIES_ROOT/$REPOSITORY/description.md"
 
@@ -127,8 +131,8 @@ execute_show()
         description="$(emphasize "# Notes in repository: $repository")"
       fi
 
-      print_info "\n>> $description\n"
-      sed -e 's/^/ /' "$target_file"
+      print_warning "\n>> $description\n"
+      sed -e 's/^\-/•/' -e 's/^/  /' "$target_file"
 
       echo ""
     else
@@ -184,12 +188,12 @@ execute_show()
 
         if [ "$empty_repo" = "true" ]; then
           if [ "$INCLUDE_EMPTY" = true ]; then
-            print_info "\n>> $description\n"
-            print_warning "   None."
+            print_warning "\n $description\n"
+            print_error "   None."
           fi
         else
-          print_info "\n>> $description\n"
-          sed -e 's/^/ /' "$target_file"
+          print_warning "\n $description\n"
+          sed -e 's/^\-/•/' -e 's/^/  /' "$target_file"
         fi
       done
 
@@ -352,6 +356,65 @@ execute_configure()
   exit 0
 }
 
+# Logs note entries per date/repository
+execute_log()
+{
+  load_repositories
+  extract_from_to_dates
+
+  IFS=$'\n' read -d '' -r dates < <(find $REPOSITORIES_ROOT -path "$REPOSITORIES_ROOT/*/*/*/*.md" -exec sh -c 'for f do basename -- "$f" .md;done' sh {} + | sort -u -r)
+
+  if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
+    echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
+  elif ! [ -z "$FROM_AT" ]; then
+    echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "and after")"
+  elif ! [ -z "$TO_AT" ]; then
+      echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
+  else
+    echo -e "$(print_info "Displaying all notes")"
+  fi
+
+  local output=""
+
+  for current_date in ${dates[@]}; do
+    if ! (([[ -z "$FROM_AT" ]] || [[ "$current_date" = "$FROM_AT" ]] || [[ "$current_date" > "$FROM_AT" ]] ) && ([[ -z "$TO_AT" ]] || [[ "$current_date" = "$TO_AT" ]] || [[ "$current_date" < "$TO_AT" ]])); then
+      continue
+    fi
+
+    AT="$current_date"
+    extract_date_components
+
+    output+="$(printf "%-10s %s" "Date:" "$(emphasize "$(display_date "$AT")")")"
+    output+="\n"
+
+    local repository_count=0
+
+    for repository in "${REPOSITORIES[@]}"; do
+      local target_file="$(resolve_target_file "$repository")"
+
+      if [ -f "$target_file" ]; then
+        repository_count=$((repository_count + 1))
+
+        if [ "$repository_count" -gt "1" ]; then
+          output+="\n"
+        fi
+
+        output+="$(printf "%-10s %s" "Category:" "$(print_warning "$repository")")"
+        output+="\n\n"
+        output+="$(sed -e 's/^-/•/' -e 's/^/           /' "$target_file")\n"
+      fi
+    done
+
+    output+="\n"
+  done
+
+  if [ -z "$output" ]; then
+    print_warning "Nothing found."
+  else
+    echo -e "\n$output" | more
+  fi
+}
+
 ##########################
 # Command helper methods #
 ##########################
@@ -400,6 +463,18 @@ parse_options()
       today|tomorrow|yesterday)
         AT="$1"
         shift
+        ;;
+      week|month|year|previous-week|previous-month|previous-year)
+        FROM_TO_ALIAS="$1"
+        shift
+        ;;
+      --from)
+        FROM_AT="$2"
+        shift 2
+        ;;
+      --to)
+        TO_AT="$2"
+        shift 2
         ;;
       --add|add)
         COMMAND="add"
@@ -463,6 +538,10 @@ parse_options()
         ;;
       --configure|configure)
         COMMAND="configure"
+        shift
+        ;;
+      --log|log)
+        COMMAND="log"
         shift
         ;;
       --) # end argument parsing
@@ -682,6 +761,43 @@ extract_date_components()
   esac
 }
 
+# Properly sets from and to dates based on aliases
+extract_from_to_dates()
+{
+  case "$FROM_TO_ALIAS" in
+    week)
+      FROM_AT=$(date -d "$(date -d yesterday +%u) days ago" +"%Y-%m-%d")
+      TO_AT=$(date -d "$FROM_AT + 6 days" +"%Y-%m-%d")
+      ;;
+    previous-week)
+      local first_date_of_current_week=$(date -d "$(date -d yesterday +%u) days ago" +"%Y-%m-%d")
+      FROM_AT=$(date -d "$(date -d $first_date_of_current_week +"%Y-%m-%d") -7 days" +"%Y-%m-%d")
+      TO_AT=$(date -d "$(date -d $first_date_of_current_week +"%Y-%m-%d") -1 days" +"%Y-%m-%d")
+      ;;
+    month)
+      FROM_AT=$(date +"%Y-%m-01")
+      TO_AT=$(date -d "$(date -d "today + 1 month" +"%Y-%m-01") - 1 day" +"%Y-%m-%d")
+      ;;
+    previous-month)
+      FROM_AT=$(date --date="$(date +'%Y-%m-01') - 1 month" +"%Y-%m-%d")
+      TO_AT=$(date --date="$(date +'%Y-%m-01') - 1 second" +"%Y-%m-%d")
+      ;;
+    year)
+      FROM_AT=$(date --date="today" +"%Y-01-01")
+      TO_AT=$(date --date="today" +"%Y-12-31")
+      ;;
+    previous-year)
+      FROM_AT=$(date --date="today - 1 year" +"%Y-01-01")
+      TO_AT=$(date --date="today - 1 year" +"%Y-12-31")
+      ;;
+    "")
+      ;;
+    *)
+      print_warning "I dont know how to handle $FROM_TO_ALIAS"
+      ;;
+  esac
+}
+
 # Loads the currently registered repositories
 load_repositories()
 {
@@ -826,7 +942,7 @@ print_hint()
 
 print_info()
 {
-  echo -e "${TEXT_BLUE}$1${TEXT_NORMAL}"
+  echo -e "${TEXT_GREY}$1${TEXT_NORMAL}"
 }
 
 print_success()
