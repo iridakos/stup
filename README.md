@@ -27,7 +27,7 @@ This allows users to retrieve any notes added on a specific date or in a specifi
 # Fetch notes for all categories
 $ stup show @ 2020-04-18
 
-# Fetch notes for a specific categories for previous week
+# Fetch notes for a specific category for previous week
 $ stup log previous-week -c programming
 
 # Fetch notes for all categories for a specific period
