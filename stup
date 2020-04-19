@@ -47,6 +47,9 @@ TEXT_UNDERLINE=$(tput smul)
 TEXT_NORMAL=$(tput sgr0)
 TEXT_GREY=$(tput setaf 248)
 
+# Version
+VERSION="v0.1.0"
+
 # Stup entry point
 stup()
 {
@@ -104,6 +107,9 @@ execute()
       ;;
     log)
       execute_log
+      ;;
+    version)
+      execute_version
       ;;
     *)
       print_error "Unknown command: '$COMMAND'"
@@ -436,6 +442,11 @@ execute_usage()
   echo "$output" | more
 }
 
+execute_version()
+{
+  echo "stup version $VERSION"
+}
+
 ##########################
 # Command helper methods #
 ##########################
@@ -572,6 +583,10 @@ parse_options()
       --) # end argument parsing
         shift
         break
+        ;;
+      -v|--version)
+        COMMAND="version"
+        shift
         ;;
       -*|--*=) # unsupported flags
         echo "Error: Unsupported flag $1" >&2
@@ -989,6 +1004,10 @@ show_usage_all()
   echo ""
   echo -e "$(emphasize "usage")"
   echo -e "$(show_usage_usage)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "version")"
+  echo -e "$(show_usage_version)" | sed -e 's/^/  /'
 }
 
 # Shows usage for the show command
@@ -1174,7 +1193,14 @@ usage: stup <command> usage
   printf "\n%15s   %s" " "                 "  stup add usage"
   printf "\n%15s   %s" " "                 "  stup add -h"
   printf "\n%15s   %s" " "                 "  stup add --help"
-  printf "\n%15s   %s" " "                 "  stup usage"
+  printf "\n%15s   %s" " "                 "  stup usage\n"
+}
+
+show_usage_version()
+{
+  echo -e "Shows stup version.
+usage: stup -v
+       stup --version\n"
 }
 
 #####################
