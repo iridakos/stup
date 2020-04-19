@@ -21,7 +21,7 @@ CATEGORIES_ROOT_DIRECTORY/CATEGORY/YEAR/MONTH/YYYY-MM-DD.MD
 CATEGORIES_ROOT_DIRECTORY/programming/2020/04/2020-04-18.md
 ```
 
-This allows users to retrieve any or all notes added in a specific date or in a specific period for a specific or all categories.
+This allows users to retrieve any notes added on a specific date or in a specific period for a specific or for all categories.
 
 ```bash
 # Fetch notes for all categories
