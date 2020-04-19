@@ -34,7 +34,7 @@ $ stup log --from 2020-04-01 --to 2020-04-15
 
 ## Installation
 
-For the moment, the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
+For the moment, the installation is manual until [this issue](https://github.com/iridakos/stup/issues/6) is resolved.
 
 So you have to clone the repository and place the executable `stup` script in a directory included in your `$PATH` variable.
 
