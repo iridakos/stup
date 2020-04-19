@@ -40,6 +40,7 @@ So you have to clone the repository and place the executable `stup` script in a 
 
 ```bash
 git clone https://github.com/iridakos/stup
+
 cd stup
 
 # Given that `~/.local/bin` is included in your $PATH variable
