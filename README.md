@@ -32,12 +32,19 @@ $ stup log previous-week -c programming
 $ stup log --from 2020-04-01 --to 2020-04-15
 ```
 
-
 ## Installation
 
 For the moment, the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
 
-So, you just have to place the executable `stup` script in a directory included in your `$PATH` variable.
+So you have to clone the repository and place the executable `stup` script in a directory included in your `$PATH` variable.
+
+```bash
+git clone https://github.com/iridakos/stup
+cd stup
+
+# Given that `~/.local/bin` is included in your $PATH variable
+cp ./stup ~/.local/bin
+```
 
 ## Configuration
 
