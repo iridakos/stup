@@ -6,6 +6,33 @@ The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-
 
 ![stup Gif demo](https://raw.githubusercontent.com/iridakos/stup/master/assets/stup-0-1-0.gif)
 
+## How it works
+
+Notes are organized in **categories**.
+
+When a new note is added, `stup` creates a markdown file and places it under the category's directory in a sub-directory with a path based on the date.
+
+```bash
+CATEGORIES_ROOT_DIRECTORY/CATEGORY/YEAR/MONTH/YYYY-MM-DD.MD
+
+# For example, the notes of a category named "programming" April 18th, 2020 are saved under
+CATEGORIES_ROOT_DIRECTORY/programming/2020/04/2020-04-18.md
+```
+
+This allows users to retrieve any or all notes added in a specific date or in a specific period for a specific or all categories.
+
+```bash
+# Fetch notes for all categories
+$ stup show @ 2020-04-18
+
+# Fetch notes for a specific categories for previous week
+$ stup log previous-week -c programming
+
+# Fetch notes for all categories for a specific period
+$ stup log --from 2020-04-01 --to 2020-04-15
+```
+
+
 ## Installation
 
 For the moment, the installation is manual until [this issue](https://github.com/iridakos/stup/issues/2) is resolved.
