@@ -1,6 +1,6 @@
 # stup
 
-`stup` is a CLI tool to easily save, access and organize daily notes.
+A CLI tool to easily save, access and organize daily notes.
 
 The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings since its initial purpose was to cover my need for keeping my Standup notes in a convenient way.
 
