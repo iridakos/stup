@@ -77,13 +77,13 @@ All of the following commands are equivalent.
 
 ```bash
 # Explicit with date alias 'yesteday'
-$ stup add @ yesteday -i "A new note"
+$ stup add @ yesteday -n "A new note"
 
 # Explicit with date alias ommiting the `@` option
-$ stup add yesteday -i "A new note"
+$ stup add yesteday -n "A new note"
 
 # Explicit without alias (suppose the date is April 17th, 2020)
-$ stup add @ 2020-04-16 -i "A new note"
+$ stup add @ 2020-04-16 -n "A new note"
 ```
 
 ##### Add a note for tomorrow
@@ -92,13 +92,13 @@ All of the following commands are equivalent.
 
 ```bash
 # Explicit with date alias 'tomorrow'
-$ stup add @ tomorrow -i "A new note"
+$ stup add @ tomorrow -n "A new note"
 
 # Explicit with date alias ommiting the `@` option
-$ stup add tomorrow -i "A new note"
+$ stup add tomorrow -n "A new note"
 
 # Explicit without alias (suppose the date is April 17th, 2020)
-$ stup add @ 2020-04-18 -i "A new note"
+$ stup add @ 2020-04-18 -n "A new note"
 ```
 
 ##### Add two notes at once
@@ -195,7 +195,7 @@ $ stup show @ 2020-04-01
 
 ```bash
 # Show today's notes added in category "pull-requests"
-$ stup show today -r "pull-requests"
+$ stup show today -n "pull-requests"
 ```
 
 ### Edit notes
@@ -218,7 +218,7 @@ where:
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
     * **if you omit this option, `stup` by default will edit the notes in the current date**
   * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
-  * `-r` or `--category`: is the category option (optional). **If omitted, you will edit the notes of your default category**
+  * `-c` or `--category`: is the category option (optional). **If omitted, you will edit the notes of your default category**
     * `<category-name>`: the name of the category in which the notes will be added
 
 **Note:** If there are no notes for a specific date and category, you will be asked if you want to create and edit the file anyway.
@@ -232,7 +232,7 @@ where:
 $ stup edit yesterday
 
 # Editing yesterday's notes for the category with name "blocking"
-$ stup edit @ yesterday -r "blocking"
+$ stup edit @ yesterday -c "blocking"
 ```
 
 ##### Editing notes on specific date
@@ -242,7 +242,7 @@ $ stup edit @ yesterday -r "blocking"
 $ stup edit @ 2020-03-24
 
 # Editing notes saved on March 24th, 2020 for the category with name "blocking"
-$ stup edit @ 2020-03-24 -r "blocking"
+$ stup edit @ 2020-03-24 -c "blocking"
 ```
 
 
