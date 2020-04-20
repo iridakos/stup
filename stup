@@ -387,6 +387,14 @@ execute_log()
     echo -e "$(print_info "Displaying all notes")"
   fi
 
+  local target_categories
+
+  if [ -n "$CATEGORY" ]; then
+    target_categories=("$CATEGORY")
+  else
+    target_categories=( "${CATEGORIES[@]}" )
+  fi
+
   local output=""
 
   for current_date in ${dates[@]}; do
@@ -397,28 +405,31 @@ execute_log()
     AT="$current_date"
     extract_date_components
 
-    output+="$(printf "%-10s %s" "Date:" "$(emphasize "$(display_date "$AT")")")"
-    output+="\n"
-
     local category_count=0
+    local category_output=""
 
-    for category in "${CATEGORIES[@]}"; do
+    for category in "${target_categories[@]}"; do
       local target_file="$(resolve_target_file "$category")"
 
       if [ -f "$target_file" ]; then
         category_count=$((category_count + 1))
 
         if [ "$category_count" -gt "1" ]; then
-          output+="\n"
+          category_output+="\n"
         fi
 
-        output+="$(printf "%-10s %s" "Category:" "$(print_warning "$category")")"
-        output+="\n\n"
-        output+="$(sed -e 's/^-/•/' -e 's/^/           /' "$target_file")\n"
+        category_output+="$(printf "%-10s %s" "Category:" "$(print_warning "$category")")"
+        category_output+="\n\n"
+        category_output+="$(sed -e 's/^-/•/' -e 's/^/           /' "$target_file")\n"
       fi
     done
 
-    output+="\n"
+    if [ -n "$category_output" ]; then
+      output+="$(printf "%-10s %s" "Date:" "$(emphasize "$(display_date "$AT")")")"
+      output+="\n"
+      output+="$category_output"
+      output+="\n"
+    fi
   done
 
   if [ -z "$output" ]; then

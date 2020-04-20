@@ -2,7 +2,7 @@
 
 A CLI tool to easily save, access and organize daily notes.
 
-![Version badge](https://img.shields.io/badge/version-0.1.0-green.svg)
+![Version badge](https://img.shields.io/badge/version-0.1.1-green.svg)
 
 The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings since its initial purpose was to cover my need for keeping my Standup notes in a convenient way.
 
@@ -294,7 +294,7 @@ $ stup log previous-week
 The full version of the command:
 
 ```bash
-$ stup log --from <from-date> --to <to-date>
+$ stup log --from <from-date> --to <to-date> -c <category-name>
 
 # or using an alias
 
@@ -307,6 +307,8 @@ where:
   - this is optional and if omitted the notes to be displayed won't have be **added after a specific date**
 - `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
   - this is also optional and if omitted the notes to be displayed won't have be **added before a specific date**
+* `-c` or `--category`: is the category option (optional). **If omitted, you will view the notes of all categories**
+  * `<category-name>`: the name of the category whose notes you want to see
 
 In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
 
