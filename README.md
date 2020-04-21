@@ -15,7 +15,7 @@ Notes are organized in **categories**.
 When a new note is added, `stup` creates a markdown file and places it under the category's directory in a sub-directory with a path based on the date.
 
 ```bash
-CATEGORIES_ROOT_DIRECTORY/CATEGORY/YEAR/MONTH/YYYY-MM-DD.MD
+CATEGORIES_ROOT_DIRECTORY/CATEGORY/YEAR/MONTH/YYYY-MM-DD.md
 
 # For example, the notes of a category named "programming" April 18th, 2020 are saved under
 CATEGORIES_ROOT_DIRECTORY/programming/2020/04/2020-04-18.md
@@ -208,17 +208,14 @@ $ stup @ 2020-04-16
 All of the following commands are equivalent.
 
 ```bash
-# Imply "show" as action and "yesterday" alias as date
-$ stup
+# Imply "show" as action
+$ stup today
 
-# Imply "yesterday" as date
-$ stup show
+# Show today's notes for the category "meetings"
+$ stup today -c "meetings"
 
-# Explicit date set to "yesterday" date alias
-$ stup yesterday
-
-# Explicit date (given that current date is April 17th, 2020)
-$ stup @ 2020-04-16
+# Show today's notes for the category "meetings" by explicitly setting action to "show"
+$ stup show today -c "meetings"
 ```
 
 ##### Show notes on a past date
@@ -254,7 +251,6 @@ where:
     * any of the words: `today`, `tomorrow`, `yesterday` in which case you can omit the `@`|`--at`|`-@` option
     * a date string in the form: `YYYY-MM-DD`, for example: 2020-04-12
     * **if you omit this option, `stup` by default will edit the notes in the current date**
-  * `<note-text>`: the text of the note, for example: "Reviewed PR related to..."
   * `-c` or `--category`: is the category option (optional). **If omitted, you will edit the notes of your default category**
     * `<category-name>`: the name of the category in which the notes will be added
 
@@ -332,6 +328,12 @@ $ stup log previous-week
 $ stup log --from 2020-01-15 --to 2020-02-01
 ```
 
+##### Log of notes added in a specific period in the category "blocking"
+
+```bash
+$ stup log --from 2020-01-15 --to 2020-02-01 -c blocking
+```
+
 ### Add a new category
 
 To add a new category to save notes into use the following command.
@@ -389,7 +391,7 @@ where:
 
 ### List your categories
 
-To see all your categories use the `order-categories` command as shown below:
+To see all your categories use the `list-categories` command as shown below:
 
 ```bash
 $ stup list-categories
@@ -421,12 +423,12 @@ New features that are on the top of my list for `stup`:
 * Ability to [search notes](https://github.com/iridakos/stup/issues/7)
 * Ability to [export notes](https://github.com/iridakos/stup/issues/8) to a file
 
-You can find more information about what is planned to be implemented browsing the [GitHub category's issues labeled as `new feature`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
+You can find more information about what is planned to be implemented browsing the [GitHub repository's issues labeled as `new feature`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
 
 ## Contributing
 
 1. Create an issue describing the purpose of the pull request unless there is one already
-2. Fork the category ( https://github.com/iridakos/stup/fork )
+2. Fork the repository ( https://github.com/iridakos/stup/fork )
 3. Create your feature branch (`git checkout -b my-new-feature`)
 4. Commit your changes (`git commit -am 'Add some feature'`)
 5. Push to the branch (`git push origin my-new-feature`)
