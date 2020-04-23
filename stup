@@ -822,8 +822,8 @@ extract_from_to_dates()
       ;;
     previous-week)
       local first_date_of_current_week=$(date -d "$(date -d yesterday +%u) days ago" +"%Y-%m-%d")
-      FROM_AT=$(date -d "$(date -d $first_date_of_current_week +"%Y-%m-%d") -7 days" +"%Y-%m-%d")
-      TO_AT=$(date -d "$(date -d $first_date_of_current_week +"%Y-%m-%d") -1 days" +"%Y-%m-%d")
+      FROM_AT=$(date -d "$first_date_of_current_week -7 days" +"%Y-%m-%d")
+      TO_AT=$(date -d "$first_date_of_current_week -1 days" +"%Y-%m-%d")
       ;;
     month)
       FROM_AT=$(date +"%Y-%m-01")
