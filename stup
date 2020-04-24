@@ -822,29 +822,29 @@ extract_from_to_dates()
       ;;
     previous-week)
       local first_date_of_current_week=$(date -d "$(date -d yesterday +%u) days ago" +"%Y-%m-%d")
-      FROM_AT=$(date -d "$(date -d $first_date_of_current_week +"%Y-%m-%d") -7 days" +"%Y-%m-%d")
-      TO_AT=$(date -d "$(date -d $first_date_of_current_week +"%Y-%m-%d") -1 days" +"%Y-%m-%d")
+      FROM_AT=$(date -d "$first_date_of_current_week -7 days" +"%Y-%m-%d")
+      TO_AT=$(date -d "$first_date_of_current_week -1 days" +"%Y-%m-%d")
       ;;
     month)
       FROM_AT=$(date +"%Y-%m-01")
       TO_AT=$(date -d "$(date -d "today + 1 month" +"%Y-%m-01") - 1 day" +"%Y-%m-%d")
       ;;
     previous-month)
-      FROM_AT=$(date --date="$(date +'%Y-%m-01') - 1 month" +"%Y-%m-%d")
-      TO_AT=$(date --date="$(date +'%Y-%m-01') - 1 second" +"%Y-%m-%d")
+      FROM_AT=$(date -d "$(date +'%Y-%m-01') - 1 month" +"%Y-%m-%d")
+      TO_AT=$(date -d "$(date +'%Y-%m-01') - 1 second" +"%Y-%m-%d")
       ;;
     year)
-      FROM_AT=$(date --date="today" +"%Y-01-01")
-      TO_AT=$(date --date="today" +"%Y-12-31")
+      FROM_AT=$(date -d "today" +"%Y-01-01")
+      TO_AT=$(date -d "today" +"%Y-12-31")
       ;;
     previous-year)
-      FROM_AT=$(date --date="today - 1 year" +"%Y-01-01")
-      TO_AT=$(date --date="today - 1 year" +"%Y-12-31")
+      FROM_AT=$(date -d "today - 1 year" +"%Y-01-01")
+      TO_AT=$(date -d "today - 1 year" +"%Y-12-31")
       ;;
     "")
       ;;
     *)
-      print_warning "I dont know how to handle $FROM_TO_ALIAS"
+      print_warning "I don't know how to handle $FROM_TO_ALIAS"
       ;;
   esac
 }
@@ -882,7 +882,7 @@ resolve_date()
       AT="today"
       ;;
     *)
-      echo "[WARN] don't know how to handle default date for command: $COMMAND"
+      print_warning "I don't know how to handle default date for command: $COMMAND"
       ;;
   esac
 }
