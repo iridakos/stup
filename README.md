@@ -3,7 +3,6 @@
 A CLI tool to easily save, access and organize daily notes.
 
 ![Version badge](https://img.shields.io/badge/version-0.1.1-green.svg)  
-  
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
