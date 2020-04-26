@@ -66,6 +66,8 @@ Follow the wizard to define:
 * what is the name of the default category \*
 * what is the editor you want to use to manually edit your notes when using the `edit` command
 
+It also asks you if you want to edit the file and change the defaults for case you omit some arguments.
+
 **\*** You can use `stup` with just a default category but in case you want to add your notes structured for example per project or per any type of section you want, you have the option to create and use multiple categories (see below).
 
 ## Usage
