@@ -48,7 +48,8 @@ TEXT_NORMAL=$(tput sgr0)
 TEXT_GREY=$(tput setaf 248)
 
 # Version
-VERSION="v0.1.0"
+# TODO: update version upon new releases
+VERSION="v0.1.1"
 
 # Stup entry point
 stup()
