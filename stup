@@ -57,6 +57,18 @@ DEFAULT_SHOW_AT="yesterday"
 DEFAULT_ADD_AT="today"
 DEFAULT_EDIT_AT="today"
 
+# Store the original date function as _date
+eval "`declare -f date | sed '1s/.*/_&/'`"
+
+# Determine which date function to use
+date() {
+  if hash gdate 2>/dev/null; then
+    gdate "$@"
+  else
+    _date "$@"
+  fi
+}
+
 # Stup entry point
 stup()
 {
