@@ -1051,6 +1051,27 @@ edit_file()
   $STUP_EDITOR "$1"
 }
 
+# Returns code-friendly value of given boolean
+resolve_boolean()
+{
+  local default_value="false"
+  if [[ $2 ]]; then
+    default_value="$2"
+  fi
+
+  case "$1" in
+    y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON)
+      echo "true"
+      ;;
+    n|N|no|No|NO|false|False|FALSE|off|Off|OFF)
+      echo "false"
+      ;;
+    *)
+      echo "$default_value"
+      ;;
+  esac
+}
+
 #################
 # Usage helpers #
 #################
