@@ -274,7 +274,7 @@ execute_edit()
   print_info "About to edit: $target_file"
 
   if ! [ -f "$target_file" ]; then
-    print_warning "Notes for category "$CATEGORY" on $(display_date "$AT") does not exist."
+    print_warning "Notes for category \"$CATEGORY\" on $(display_date "$AT") does not exist."
     read -e -p ">>> Type yes|y to create and edit the file or anything else to abort: " response
 
     if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
@@ -483,25 +483,25 @@ ensure_configured()
 
   if [ -z "$REPOSITORY_ROOT" ]; then
     print_error "Invalid stup configuration - missing categories root"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 
   if [ -z "$DEFAULT_CATEGORY" ]; then
     print_error "Invalid stup configuration - missing default category"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 
   if ! [ -d "$REPOSITORY_ROOT" ]; then
     print_error "Invalid stup configuration - categories root directory does not exist"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 
   if ! [ -f "$(resolve_categories_configuration_file)" ]; then
     print_error "Invalid stup configuration - missing categories configuration file"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 }
@@ -580,7 +580,7 @@ parse_options()
         load_categories
 
         if [[ ! " ${CATEGORIES[@]} " =~ " ${2} " ]]; then
-          print_error "Category "$2" does not exist."
+          print_error "Category \"$2\" does not exist."
           exit 1
         fi
 
@@ -608,7 +608,7 @@ parse_options()
         shift
         ;;
       -*|--*=) # unsupported flags
-        echo "Error: Unsupported flag $1" >&2
+        echo "Error: Unsupported flag \"$1\"" >&2
         exit 1
         ;;
       *)
@@ -636,7 +636,7 @@ wizard()
       fi
 
       read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_category_root
-      new_category_root=$(echo -e "${new_category_root}" | tr -d '[:space:]')
+      new_category_root=$(echo -e "${new_category_root}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
 
       case "$new_category_root" in
         "")
@@ -678,7 +678,7 @@ wizard()
       fi
 
       read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_category
-      new_default_category=$(echo -e "${new_default_category}" | tr -d '[:space:]')
+      new_default_category=$(echo -e "${new_default_category}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
 
       case "$new_default_category" in
         "")
@@ -788,14 +788,14 @@ resolve_configuration_file()
 # Stores configuration of stup
 store_configuration()
 {
-  echo -e "categories_root=$REPOSITORY_ROOT
+  echo -ne "categories_root=$REPOSITORY_ROOT
 default_category=$DEFAULT_CATEGORY
 stup_editor=$STUP_EDITOR
 default_command=$DEFAULT_COMMAND
 default_show_at=$DEFAULT_SHOW_AT
 default_add_at=$DEFAULT_ADD_AT
 default_edit_at=$DEFAULT_EDIT_AT
-" > $CONFIG_FILE
+" > "$CONFIG_FILE"
 }
 
 store_category_configuration()
@@ -984,7 +984,7 @@ resolve_last_at()
 # TODO: must find a better way for handling colored output
 display_date()
 {
-  echo $(success_color "$(date --date "$1" +"%A %B %d, %Y")")
+  echo $(success_color "$(date -d "$1" +"%A %B %d, %Y")")
 }
 
 # Resolves the filename of the stup entry for a specific date at a specific category
