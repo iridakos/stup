@@ -329,11 +329,7 @@ execute_order_categories()
     exit 1
   fi
 
-  if [ -z "$STUP_EDITOR" ]; then
-    STUP_EDITOR="vi"
-  fi
-
-  $STUP_EDITOR "$conf"
+  edit_file "$conf"
 }
 
 # Updates the description of a given category
