@@ -476,25 +476,25 @@ ensure_configured()
 
   if [ -z "$REPOSITORY_ROOT" ]; then
     print_error "Invalid stup configuration - missing categories root"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 
   if [ -z "$DEFAULT_CATEGORY" ]; then
     print_error "Invalid stup configuration - missing default category"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 
   if ! [ -d "$REPOSITORY_ROOT" ]; then
     print_error "Invalid stup configuration - categories root directory does not exist"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 
   if ! [ -f "$(resolve_categories_configuration_file)" ]; then
     print_error "Invalid stup configuration - missing categories configuration file"
-    print_hint "Use \"stup --configure\" to re-configure stup"
+    print_hint "Use \"stup configure\" to re-configure stup"
     exit 1
   fi
 }
