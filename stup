@@ -268,7 +268,7 @@ execute_edit()
   print_info "About to edit: $target_file"
 
   if ! [ -f "$target_file" ]; then
-    print_warning "Notes for category "$CATEGORY" on $(display_date "$AT") does not exist."
+    print_warning "Notes for category \"$CATEGORY\" on $(display_date "$AT") does not exist."
     read -e -p ">>> Type yes|y to create and edit the file or anything else to abort: " response
 
     if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
@@ -573,7 +573,7 @@ parse_options()
         load_categories
 
         if [[ ! " ${CATEGORIES[@]} " =~ " ${2} " ]]; then
-          print_error "Category "$2" does not exist."
+          print_error "Category \"$2\" does not exist."
           exit 1
         fi
 
@@ -601,7 +601,7 @@ parse_options()
         shift
         ;;
       -*|--*=) # unsupported flags
-        echo "Error: Unsupported flag $1" >&2
+        echo "Error: Unsupported flag \"$1\"" >&2
         exit 1
         ;;
       *)
@@ -769,10 +769,10 @@ resolve_configuration_file()
 # Stores configuration of stup
 store_configuration()
 {
-  echo -e "categories_root=$REPOSITORY_ROOT
+  echo -ne "categories_root=$REPOSITORY_ROOT
 default_category=$DEFAULT_CATEGORY
 stup_editor=$STUP_EDITOR
-" > $CONFIG_FILE
+" > "$CONFIG_FILE"
 }
 
 store_category_configuration()
