@@ -958,7 +958,7 @@ resolve_last_at()
 # TODO: must find a better way for handling colored output
 display_date()
 {
-  echo $(success_color "$(date --date "$1" +"%A %B %d, %Y")")
+  echo $(success_color "$(date -d "$1" +"%A %B %d, %Y")")
 }
 
 # Resolves the filename of the stup entry for a specific date at a specific category
