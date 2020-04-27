@@ -629,7 +629,7 @@ wizard()
       fi
 
       read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_category_root
-      new_category_root=$(echo -e "${new_category_root}" | tr -d '[:space:]')
+      new_category_root=$(echo -e "${new_category_root}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
 
       case "$new_category_root" in
         "")
@@ -671,7 +671,7 @@ wizard()
       fi
 
       read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_category
-      new_default_category=$(echo -e "${new_default_category}" | tr -d '[:space:]')
+      new_default_category=$(echo -e "${new_default_category}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
 
       case "$new_default_category" in
         "")
