@@ -51,19 +51,25 @@ TEXT_GREY=$(tput setaf 248)
 # TODO: update version upon new releases
 VERSION="v0.1.2"
 
+# Some defaults (can be changed from configuration file)
+DEFAULT_COMMAND="show"
+DEFAULT_SHOW_AT="yesterday"
+DEFAULT_ADD_AT="today"
+DEFAULT_EDIT_AT="today"
+
 # Stup entry point
 stup()
 {
   resolve_configuration_file
   parse_options "$@"
 
-  if [ -z "$COMMAND" ] && (! [ "$USAGE" = "true" ] ); then
-    COMMAND="show"
-  fi
-
   if [ "$COMMAND" != "configure" ] && [ "$USAGE" != "true" ]; then
     ensure_configured
     load_configuration
+  fi
+
+  if [ -z "$COMMAND" ] && (! [ "$USAGE" = "true" ] ); then
+    COMMAND="$DEFAULT_COMMAND"
   fi
 
   execute
@@ -280,11 +286,7 @@ execute_edit()
   local target_directory="$(dirname "$target_file")"
   mkdir -p "$target_directory"
 
-  if [ -z "$STUP_EDITOR" ]; then
-    STUP_EDITOR="vi"
-  fi
-
-  $STUP_EDITOR "$target_file"
+  edit_file "$target_file"
 }
 
 # Adds a category
@@ -327,11 +329,7 @@ execute_order_categories()
     exit 1
   fi
 
-  if [ -z "$STUP_EDITOR" ]; then
-    STUP_EDITOR="vi"
-  fi
-
-  $STUP_EDITOR "$conf"
+  edit_file "$conf"
 }
 
 # Updates the description of a given category
@@ -366,6 +364,15 @@ execute_configure()
   wizard "stup_editor"
 
   store_configuration
+
+  print_info "The config file contains some more goodies, would you like to edit it now?"
+  read -e -p ">>> Type yes|y to edit the file or anything else to abort: " response
+
+  if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+    exit 0
+  fi
+
+  edit_file "$CONFIG_FILE"
 
   exit 0
 }
@@ -757,6 +764,18 @@ handle_configuration_variable()
     stup_editor)
       STUP_EDITOR="$2"
       ;;
+    default_command)
+      DEFAULT_COMMAND="$2"
+      ;;
+    default_show_at)
+      DEFAULT_SHOW_AT="$2"
+      ;;
+    default_add_at)
+      DEFAULT_ADD_AT="$2"
+      ;;
+    default_edit_at)
+      DEFAULT_EDIT_AT="$2"
+      ;;
   esac
 }
 
@@ -772,6 +791,10 @@ store_configuration()
   echo -e "categories_root=$REPOSITORY_ROOT
 default_category=$DEFAULT_CATEGORY
 stup_editor=$STUP_EDITOR
+default_command=$DEFAULT_COMMAND
+default_show_at=$DEFAULT_SHOW_AT
+default_add_at=$DEFAULT_ADD_AT
+default_edit_at=$DEFAULT_EDIT_AT
 " > $CONFIG_FILE
 }
 
@@ -877,10 +900,13 @@ resolve_date()
 
   case "$COMMAND" in
     show)
-      AT="yesterday"
+      AT="$DEFAULT_SHOW_AT"
       ;;
-    add|edit)
-      AT="today"
+    add)
+      AT="$DEFAULT_ADD_AT"
+      ;;
+    edit)
+      AT="$DEFAULT_EDIT_AT"
       ;;
     *)
       print_warning "I don't know how to handle default date for command: $COMMAND"
@@ -971,6 +997,16 @@ resolve_target_file()
 resolve_categories_configuration_file()
 {
   echo "$REPOSITORY_ROOT/categories.conf"
+}
+
+# Runs the user-set editor on given file
+edit_file()
+{
+  if [ -z "$STUP_EDITOR" ]; then
+    STUP_EDITOR="vi"
+  fi
+
+  $STUP_EDITOR "$1"
 }
 
 #################
