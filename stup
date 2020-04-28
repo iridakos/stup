@@ -1060,10 +1060,10 @@ resolve_boolean()
   fi
 
   case "$1" in
-    y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON)
+    y|Y|[yY][eE][sS]|[tT][rR][uU][eE]|[oO][nN])
       echo "true"
       ;;
-    n|N|no|No|NO|false|False|FALSE|off|Off|OFF)
+    n|N|[nN][oO]|[fF][aA][lL][sS][eE]|[oO][fF][fF])
       echo "false"
       ;;
     *)
