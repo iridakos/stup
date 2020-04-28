@@ -4,7 +4,7 @@ A CLI tool to easily save, access and organize daily notes.
 
 ![Version badge](https://img.shields.io/badge/version-0.1.3-green.svg)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings since its initial purpose was to cover my need for keeping my Standup notes in a convenient way.
@@ -455,6 +455,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/tiosgz"><img src="https://avatars1.githubusercontent.com/u/53824308?v=4" width="100px;" alt=""/><br /><sub><b>Bohdan Potměkleč</b></sub></a><br /><a href="https://github.com/iridakos/stup/commits?author=tiosgz" title="Code">💻</a> <a href="https://github.com/iridakos/stup/issues?q=author%3Atiosgz" title="Bug reports">🐛</a> <a href="#ideas-tiosgz" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/haganbmj"><img src="https://avatars0.githubusercontent.com/u/15820761?v=4" width="100px;" alt=""/><br /><sub><b>Brendan Hagan</b></sub></a><br /><a href="#question-haganbmj" title="Answering Questions">💬</a></td>
   </tr>
 </table>
 
