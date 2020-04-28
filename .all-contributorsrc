@@ -16,6 +16,15 @@
         "ideas",
         "question"
       ]
+    },
+    {
+      "login": "haganbmj",
+      "name": "Brendan Hagan",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/15820761?v=4",
+      "profile": "https://github.com/haganbmj",
+      "contributions": [
+        "question"
+      ]
     }
   ],
   "contributorsPerLine": 7,
