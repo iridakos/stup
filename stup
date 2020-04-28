@@ -872,6 +872,16 @@ extract_from_to_dates()
       TO_AT=$(date -d "today - 1 year" +"%Y-12-31")
       ;;
     "")
+      case "$FROM_AT" in
+        today|yesterday|tomorrow)
+          FROM_AT=$(date -d $FROM_AT +"%Y-%m-%d")
+          ;;
+      esac
+      case "$TO_AT" in
+        today|yesterday|tomorrow)
+          TO_AT=$(date -d $TO_AT +"%Y-%m-%d")
+          ;;
+      esac
       ;;
     *)
       print_warning "I don't know how to handle $FROM_TO_ALIAS"
