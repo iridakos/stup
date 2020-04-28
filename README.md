@@ -2,7 +2,7 @@
 
 A CLI tool to easily save, access and organize daily notes.
 
-![Version badge](https://img.shields.io/badge/version-0.1.3-green.svg)
+![Version badge](https://img.shields.io/badge/version-0.1.4-green.svg)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -237,6 +237,89 @@ $ stup show @ 2020-04-01
 $ stup show today -n "pull-requests"
 ```
 
+### Log notes
+
+To list your notes for a given period, use the `log` command.
+
+```bash
+$ stup log previous-week
+```
+
+The full version of the command:
+
+```bash
+$ stup log --from <from-date> --to <to-date> -c <category-name>
+
+# or using an alias
+
+$ stup log <week|previous-week|month|previous-month|year|previous-year>
+```
+
+where:
+
+- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is optional and if omitted the notes to be displayed won't have be **added after a specific date**
+- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is also optional and if omitted the notes to be displayed won't have be **added before a specific date**
+* `-c` or `--category`: is the category option (optional). **If omitted, you will view the notes of all categories**
+  * `<category-name>`: the name of the category whose notes you want to see
+
+In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
+
+In both case, you may skip the `log` literal given that you set either an alias or one of the `from` and `to` flags.
+
+#### Examples
+
+##### Log of this week's notes
+
+```bash
+$ stup log week
+
+# or
+
+$ stup week
+```
+
+##### Log of previous week's notes
+
+```bash
+$ stup log previous-week
+
+# or
+
+$ stup previous-week
+```
+
+##### Log of notes added in a specific period
+
+```bash
+$ stup log --from 2020-01-15 --to 2020-02-01
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01
+```
+
+##### Log of notes added in a specific period in the category "blocking"
+
+```bash
+$ stup log --from 2020-01-15 --to 2020-02-01 -c blocking
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01 -c blocking
+```
+
+##### Log of notes added after a specific date in the category "blocking"
+
+```bash
+$ stup log --from 2020-01-15 -c blocking
+
+# or
+
+$ stup --from 2020-01-15 -c blocking
+```
+
 ### Edit notes
 
 To manually edit notes added in a specific date use the `edit` command.
@@ -284,60 +367,6 @@ $ stup edit @ 2020-03-24 -c "blocking"
 ```
 
 
-### Log notes
-
-To list your notes for a given period, use the `log` command.
-
-```bash
-$ stup log previous-week
-```
-
-The full version of the command:
-
-```bash
-$ stup log --from <from-date> --to <to-date> -c <category-name>
-
-# or using an alias
-
-$ stup log <week|previous-week|month|previous-month|year|previous-year>
-```
-
-where:
-
-- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
-  - this is optional and if omitted the notes to be displayed won't have be **added after a specific date**
-- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
-  - this is also optional and if omitted the notes to be displayed won't have be **added before a specific date**
-* `-c` or `--category`: is the category option (optional). **If omitted, you will view the notes of all categories**
-  * `<category-name>`: the name of the category whose notes you want to see
-
-In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
-
-#### Examples
-
-##### Log of this week's notes
-
-```bash
-$ stup log week
-```
-
-##### Log of previous week's notes
-
-```bash
-$ stup log previous-week
-```
-
-##### Log of notes added in a specific period
-
-```bash
-$ stup log --from 2020-01-15 --to 2020-02-01
-```
-
-##### Log of notes added in a specific period in the category "blocking"
-
-```bash
-$ stup log --from 2020-01-15 --to 2020-02-01 -c blocking
-```
 
 ### Add a new category
 

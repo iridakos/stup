@@ -49,7 +49,7 @@ TEXT_GREY=$(tput setaf 248)
 
 # Version
 # TODO: update version upon new releases
-VERSION="v0.1.3"
+VERSION="v0.1.4"
 
 # Some defaults (can be changed from configuration file)
 DEFAULT_COMMAND="show"
