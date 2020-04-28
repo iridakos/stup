@@ -523,14 +523,23 @@ parse_options()
         ;;
       week|month|year|previous-week|previous-month|previous-year)
         FROM_TO_ALIAS="$1"
+        if [ -z "$COMMAND" ];then
+          COMMAND="log"
+        fi
         shift
         ;;
       --from)
         FROM_AT="$2"
+        if [ -z "$COMMAND" ]; then
+          COMMAND="log"
+        fi
         shift 2
         ;;
       --to)
         TO_AT="$2"
+        if [ -z "$COMMAND" ]; then
+          COMMAND="log"
+        fi
         shift 2
         ;;
       --add|add)
