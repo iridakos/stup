@@ -266,7 +266,7 @@ where:
 
 In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
 
-In both case, you may skip the `log` literal given that you set either an alias or one of the `from` and `to` flags.
+In both cases, you may skip the `log` literal given that you set either an alias or one of the `from` and `to` flags.
 
 #### Examples
 
