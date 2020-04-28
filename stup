@@ -383,16 +383,24 @@ execute_log()
   load_categories
   extract_from_to_dates
 
-  IFS=$'\n' read -d '' -r dates < <(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | sort -u -r)
+  local cmd;
 
   if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
+    local from="$(echo $FROM_AT | sed -e 's/\-//g')"
+    local to="$(echo $TO_AT | sed -e 's/\-//g')"
+    cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | awk '{ p=\$1; gsub(\"-\",\"\",p); if(p>=$from && p<=$to) { print \$1 } }' | sort -u"
   elif ! [ -z "$FROM_AT" ]; then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "and after")"
+    local from="$(echo $FROM_AT | sed -e 's/\-//g')"
+    cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | awk '{ p=\$1; gsub(\"-\",\"\",p); if(p>=$from) { print $1} }' | sort -u"
   elif ! [ -z "$TO_AT" ]; then
       echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
+      local to="$(echo $TO_AT | sed -e 's/\-//g')"
+      cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | awk '{ p=\$1; gsub(\"-\",\"\",p); if(p<=$to) { print \$1} }' | sort -u"
   else
     echo -e "$(print_info "Displaying all notes")"
+    cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | sort -u"
   fi
 
   local target_categories
@@ -405,11 +413,9 @@ execute_log()
 
   local output=""
 
-  for current_date in ${dates[@]}; do
-    if ! (([[ -z "$FROM_AT" ]] || [[ "$current_date" = "$FROM_AT" ]] || [[ "$current_date" > "$FROM_AT" ]] ) && ([[ -z "$TO_AT" ]] || [[ "$current_date" = "$TO_AT" ]] || [[ "$current_date" < "$TO_AT" ]])); then
-      continue
-    fi
+  IFS=$'\n' read -d '' -r dates < <(eval "$cmd")
 
+  for current_date in ${dates[@]}; do
     AT="$current_date"
     extract_date_components
 
