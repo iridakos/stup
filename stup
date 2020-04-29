@@ -393,23 +393,34 @@ execute_log()
 
   local cmd;
 
+  if (! [ -z "$FROM_AT" ] && [ "$FROM_AT" = "$TO_AT" ] ); then
+    AT="$FROM_AT"
+    COMMAND="show"
+    execute_show
+    exit
+  fi
+
   if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
-    local from="$(echo $FROM_AT | sed -e 's/\-//g')"
-    local to="$(echo $TO_AT | sed -e 's/\-//g')"
-    cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | awk '{ p=\$1; gsub(\"-\",\"\",p); if(p>=$from && p<=$to) { print \$1 } }' | sort -u"
+    target_command="sed -n "/$FROM_AT/,/$TO_AT/p""
   elif ! [ -z "$FROM_AT" ]; then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "and after")"
-    local from="$(echo $FROM_AT | sed -e 's/\-//g')"
-    cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | awk '{ p=\$1; gsub(\"-\",\"\",p); if(p>=$from) { print $1} }' | sort -u"
+    target_command="sed -n "/$FROM_AT/,//p""
   elif ! [ -z "$TO_AT" ]; then
-      echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
-      local to="$(echo $TO_AT | sed -e 's/\-//g')"
-      cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | awk '{ p=\$1; gsub(\"-\",\"\",p); if(p<=$to) { print \$1} }' | sort -u"
+    echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
+    target_command="sed "/$TO_AT/q""
   else
+    # TODO: we should prompt for confirmation here: "Are you sure you want to view all of your notes?"
     echo -e "$(print_info "Displaying all notes")"
-    cmd="find $REPOSITORY_ROOT -path \"$REPOSITORY_ROOT\/*\/*\/*\/*.md\" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | sort -u"
+    target_command='tr -d ""'
   fi
+
+  IFS=$'\n' read -d '' dates < <(
+    echo -e "$FROM_AT\n$TO_AT\n$(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md")" |
+    sed -e 's/.*\///' -e 's/\.[^.]*$//' |
+    sort -u |
+    $target_command
+  )
 
   local target_categories
 
@@ -420,8 +431,6 @@ execute_log()
   fi
 
   local output=""
-
-  IFS=$'\n' read -d '' -r dates < <(eval "$cmd")
 
   for current_date in ${dates[@]}; do
     AT="$current_date"
