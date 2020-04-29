@@ -26,6 +26,15 @@
         "question",
         "code"
       ]
+    },
+    {
+      "login": "dspinellis",
+      "name": "Diomidis Spinellis",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1212716?v=4",
+      "profile": "http://www.dmst.aueb.gr/dds",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
