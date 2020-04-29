@@ -52,6 +52,18 @@ cd stup
 cp ./stup ~/.local/bin
 ```
 
+## Compatibility
+
+The script has been tested in:
+
+- Ubuntu 18.04
+- Ubuntu 19.10
+- Debian 9
+
+but it should be running without problems in other Linux Distros as well.
+
+If you face any problems though, feel free to open an issue reporting your Distro and its version.
+
 ## Configuration
 
 Before you start using `stup` you have to configure it with:
