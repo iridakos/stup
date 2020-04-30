@@ -224,7 +224,7 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in any category."
-      read -e -p "Do you want to retrieve the last notes added with stup?" search_last_entries
+      read -e -p "Do you want to retrieve the last notes added with stup? " search_last_entries
 
       if [ "$(resolve_boolean "$search_last_entries")" = "true" ]; then
         resolve_last_at
@@ -367,7 +367,7 @@ execute_configure()
 
   store_configuration
 
-  read -e -p "$(print_info "The config file contains some more goodies, would you like to edit it now?")" response
+  read -e -p "$(print_info "The config file contains some more goodies, would you like to edit it now?") " response
 
   if ! [ "$(resolve_boolean "$response")" = true ]; then
     exit 0
