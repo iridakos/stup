@@ -1059,7 +1059,9 @@ resolve_boolean()
     default_value="$2"
   fi
 
-  case "$1" in
+  local choice=$(echo "$1" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+
+  case "$choice" in
     y|Y|[yY][eE][sS]|[tT][rR][uU][eE]|[oO][nN])
       echo "true"
       ;;
