@@ -46,6 +46,7 @@ TEXT_REVERSE=$(tput smso)
 TEXT_UNDERLINE=$(tput smul)
 TEXT_NORMAL=$(tput sgr0)
 TEXT_GREY=$(tput setaf 248)
+NOTES_PREFIX='- '
 
 # Version
 # TODO: update version upon new releases
@@ -56,6 +57,8 @@ DEFAULT_COMMAND="show"
 DEFAULT_SHOW_AT="yesterday"
 DEFAULT_ADD_AT="today"
 DEFAULT_EDIT_AT="today"
+DEFAULT_COPY_AT="today"
+DEFAULT_COPY_FROM="yesterday"
 
 # Use gdate instead of date when available.
 if hash gdate 2>/dev/null; then
@@ -122,6 +125,9 @@ execute()
       ;;
     log)
       execute_log
+      ;;
+    copy)
+      execute_copy
       ;;
     version)
       execute_version
@@ -264,7 +270,7 @@ execute_add()
   fi
 
   for item in "${NOTES[@]}"; do
-    echo "- $item" >> $target_file
+    echo "$NOTES_PREFIX$item" >> $target_file
   done
 
   echo -e "Successfully added $(emphasize "$number_of_notes") notes in category $(emphasize "$CATEGORY") for $(display_date $AT)"
@@ -295,6 +301,93 @@ execute_edit()
   mkdir -p "$target_directory"
 
   edit_file "$target_file"
+}
+
+# Copies notes from one spcified date to another
+execute_copy()
+{
+  resolve_required_category
+  extract_from_to_dates
+
+  # Required for the target file
+  AT="$TO_AT"
+  extract_date_components
+
+  extract_copy_from_date_components
+
+  target_file="$(resolve_target_file $CATEGORY)"
+
+  if ! [ -f "$target_file" ]; then
+    mkdir -p "${target_file%/*}" && touch "$target_file"
+  fi
+
+  copy_from_file="$(resolve_copy_from_file $CATEGORY)"
+
+  if ! [ -f "$copy_from_file" ]; then
+    print_error "Failed to find origin file: $copy_from_file"
+    exit 1
+  fi
+
+  if [ "$copy_from_file" = $target_file ]; then
+    print_error "Origin date and target date must be different"
+    exit 1
+  fi
+
+  print_info "About to copy from: $copy_from_file to: $target_file"
+
+  IFS=$'\n\r' read -d '' -r -a notes_to_copy < $copy_from_file
+
+  add_all=false
+  for note in "${notes_to_copy[@]}"; do
+    if ! [ "$add_all" = true ]; then
+      ask=true
+
+      while [ "$ask" = true ]; do
+        ask=false
+
+        if [ "$invalid_input" = true ]; then
+          print_error "
+          y - Add note
+          n - Skip note
+          q - Skip all remaining notes
+          a - Add all remaining notes
+          "
+        fi
+
+        invalid_input=false
+
+        echo -e "\n\n$note\n\n"
+        read -e -p ">>> Copy this note [y,n,q,a]?: " response
+
+        if [[ "$response" = 'y' ]]; then
+          add_note=true
+        elif [[ "$response" = 'n' ]]; then
+          add_note=false
+        elif [[ "$response" = 'q' ]]; then
+          exit 0
+        elif [[ "$response" = 'a' ]]; then
+          add_note=true
+          add_all=true
+        else
+          ask=true
+          invalid_input=true
+        fi
+      done
+    fi
+
+    if [ "$add_note" = true ]; then
+      echo $note >> $target_file
+    fi
+
+    # Displaying only in case prompt is being skipped and all items are being
+    # added.
+    if [ "$add_all" = true ]; then
+      # Removing the prefix
+      added_note="$(sed "s/$NOTES_PREFIX//" <<< $note)"
+
+      echo -e "Added $(emphasize "$added_note") in category $(emphasize "$CATEGORY") for $(display_date $AT)"
+    fi
+  done
 }
 
 # Adds a category
@@ -631,6 +724,10 @@ parse_options()
         COMMAND="log"
         shift
         ;;
+      --copy|copy)
+        COMMAND="copy"
+        shift
+        ;;
       --) # end argument parsing
         shift
         break
@@ -868,6 +965,23 @@ extract_date_components()
   esac
 }
 
+extract_copy_from_date_components()
+{
+  case "$FROM_AT" in
+    today|yesterday|tomorrow)
+      COPY_FROM_YEAR=$(date -d "$FROM_AT" +"%Y")
+      COPY_FROM_MONTH=$(date -d "$FROM_AT" +"%m")
+      COPY_FROM_DAY=$(date -d "$FROM_AT" +"%d")
+      ;;
+    *)
+      IFS='-' read -ra parts <<< "$FROM_AT"
+      COPY_FROM_YEAR="${parts[0]}"
+      COPY_FROM_MONTH="${parts[1]}"
+      COPY_FROM_DAY="${parts[2]}"
+      ;;
+  esac
+}
+
 # Properly sets from and to dates based on aliases
 extract_from_to_dates()
 {
@@ -902,10 +1016,20 @@ extract_from_to_dates()
         today|yesterday|tomorrow)
           FROM_AT=$(date -d $FROM_AT +"%Y-%m-%d")
           ;;
+        '')
+          if [ $COMMAND = copy ]; then
+            FROM_AT="$DEFAULT_COPY_FROM"
+          fi
+          ;;
       esac
       case "$TO_AT" in
         today|yesterday|tomorrow)
           TO_AT=$(date -d $TO_AT +"%Y-%m-%d")
+          ;;
+        '')
+          if [ $COMMAND = copy ]; then
+            TO_AT="$DEFAULT_COPY_AT"
+          fi
           ;;
       esac
       ;;
@@ -1033,6 +1157,11 @@ display_date()
 resolve_target_file()
 {
   echo "$REPOSITORY_ROOT/$1/$YEAR/$MONTH/$YEAR-$MONTH-$DAY.md"
+}
+
+resolve_copy_from_file()
+{
+  echo "$REPOSITORY_ROOT/$1/$COPY_FROM_YEAR/$COPY_FROM_MONTH/$COPY_FROM_YEAR-$COPY_FROM_MONTH-$COPY_FROM_DAY.md"
 }
 
 # Resolves the filename of the categories configuration
