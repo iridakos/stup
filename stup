@@ -59,6 +59,7 @@ DEFAULT_ADD_AT="today"
 DEFAULT_EDIT_AT="today"
 DEFAULT_COPY_TO="today"
 DEFAULT_COPY_FROM="yesterday"
+PAGER="true"
 
 # Use gdate instead of date when available.
 if hash gdate 2>/dev/null; then
@@ -557,7 +558,7 @@ execute_log()
   if [ -z "$output" ]; then
     print_warning "Nothing found."
   else
-    echo -e "\n$output" | more
+    pager "$(echo -e "\n$output")"
   fi
 }
 
@@ -572,7 +573,7 @@ execute_usage()
     output=$("show_usage_$COMMAND")
   fi
 
-  echo "$output" | more
+  pager "$output"
 }
 
 execute_version()
@@ -724,6 +725,14 @@ parse_options()
         ;;
       --copy|copy)
         COMMAND="copy"
+        shift
+        ;;
+      --pager)
+        PAGER="true"
+        shift
+        ;;
+      --no-pager)
+        PAGER="false"
         shift
         ;;
       --) # end argument parsing
@@ -909,6 +918,10 @@ handle_configuration_variable()
     default_copy_to)
       DEFAULT_COPY_TO="$2"
       ;;
+    pager)
+      # TODO: make sure the input is correct
+      PAGER="$2"
+      ;;
   esac
 }
 
@@ -930,6 +943,7 @@ default_add_at=$DEFAULT_ADD_AT
 default_edit_at=$DEFAULT_EDIT_AT
 default_copy_from=$DEFAULT_COPY_FROM
 default_copy_to=$DEFAULT_COPY_TO
+pager=$PAGER
 " > "$CONFIG_FILE"
 }
 
@@ -1529,6 +1543,15 @@ success_color()
 emphasize()
 {
   echo "${TEXT_BOLD}$1${TEXT_NORMAL}"
+}
+
+pager()
+{
+  if [ "$PAGER" = "true" ]; then
+    echo "$*" | more
+  else
+    echo "$*"
+  fi
 }
 
 # Let's go
