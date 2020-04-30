@@ -163,17 +163,14 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in category $CATEGORY."
-      echo -e "Do you want to retrieve the last notes added in this category with stup?"
-      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      read -e -p "Do you want to retrieve the last notes added in this category with stup? " search_last_entries
 
-      case "$search_last_entries" in
-        y|Y|yes|Yes)
-          resolve_last_at
-          execute_show "$AT"
-          ;;
-        *)
+      if [ "$(resolve_boolean "$search_last_entries")" = "true" ]; then
+        resolve_last_at
+        execute_show "$AT"
+      else
           exit 0
-      esac
+      fi
     fi
   else
     load_categories
@@ -227,17 +224,14 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in any category."
-      echo -e "Do you want to retrieve the last notes added with stup?"
-      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      read -e -p "Do you want to retrieve the last notes added with stup?" search_last_entries
 
-      case "$search_last_entries" in
-        y|Y|yes|Yes)
-          resolve_last_at
-          execute_show "$AT"
-          ;;
-        *)
-          exit 0
-      esac
+      if [ "$(resolve_boolean "$search_last_entries")" = "true" ]; then
+        resolve_last_at
+        execute_show "$AT"
+      else
+        exit 0
+      fi
     fi
   fi
 }
@@ -283,9 +277,9 @@ execute_edit()
 
   if ! [ -f "$target_file" ]; then
     print_warning "Notes for category \"$CATEGORY\" on $(display_date "$AT") does not exist."
-    read -e -p ">>> Type yes|y to create and edit the file or anything else to abort: " response
+    read -e -p ">>> Do you want to create and edit the file? " response
 
-    if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+    if ! [ "$(resolve_boolean "$response")" = 'true' ]; then
       echo 'Aborted.'
       exit 0
     fi
@@ -373,10 +367,9 @@ execute_configure()
 
   store_configuration
 
-  print_info "The config file contains some more goodies, would you like to edit it now?"
-  read -e -p ">>> Type yes|y to edit the file or anything else to abort: " response
+  read -e -p "$(print_info "The config file contains some more goodies, would you like to edit it now?")" response
 
-  if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+  if ! [ "$(resolve_boolean "$response")" = true ]; then
     exit 0
   fi
 
