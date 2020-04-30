@@ -661,7 +661,7 @@ wizard()
       fi
 
       read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_category_root
-      new_category_root=$(echo -e "${new_category_root}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+      new_category_root=$(trim "$(echo -e "${new_category_root}")")
 
       case "$new_category_root" in
         "")
@@ -703,7 +703,7 @@ wizard()
       fi
 
       read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_category
-      new_default_category=$(echo -e "${new_default_category}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+      new_default_category=$(trim "$(echo -e "${new_default_category}")")
 
       case "$new_default_category" in
         "")
@@ -740,7 +740,7 @@ wizard()
       fi
 
       read -e -p ">>> Press enter to keep the default or fill in a new one (ex. vim): " new_stup_editor
-      new_stup_editor=$(echo -e "${new_stup_editor}" | tr -d '[:space:]')
+      new_stup_editor=$(trim "$(echo -e "${new_stup_editor}")")
 
       if ! [[ -z "$new_stup_editor" ]]; then
         STUP_EDITOR="$new_stup_editor"
@@ -1052,7 +1052,7 @@ resolve_boolean()
     default_value="$2"
   fi
 
-  local choice=$(echo "$1" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+  local choice=$(trim "$1")
 
   case "$choice" in
     y|Y|[yY][eE][sS]|[tT][rR][uU][eE]|[oO][nN])
@@ -1065,6 +1065,13 @@ resolve_boolean()
       echo "$default_value"
       ;;
   esac
+}
+
+# Trims whitespace from the beginning and end of string
+trim()
+{
+  # TODO: make this also strip newlines
+  echo "$1" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g'
 }
 
 #################
