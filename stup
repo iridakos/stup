@@ -50,7 +50,7 @@ NOTES_PREFIX='- '
 
 # Version
 # TODO: update version upon new releases
-VERSION="v0.1.6"
+VERSION="v0.1.7"
 
 # Some defaults (can be changed from configuration file)
 DEFAULT_COMMAND="show"
