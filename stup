@@ -1068,13 +1068,13 @@ resolve_boolean()
 }
 
 # Trims whitespace from the beginning and end of string
-# https://stackoverflow.com/a/3352015
+# https://unix.stackexchange.com/a/476504
 trim() {
   local var="$*"
-  # remove leading whitespace characters
-  var="${var#"${var%%[![:space:]]*}"}"
-  # remove trailing whitespace characters
-  var="${var%"${var##*[![:space:]]}"}"   
+  local trail=${var##*[^[:blank:]]}    # get trailing space
+  var=${var%${trail}}                  # remove trailing space
+  local lead=${var%%[^[:blank:]]*}     # get leading space
+  var=${var#${lead}}                   # remove leading space
   printf '%s' "$var"
 }
 
