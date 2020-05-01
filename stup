@@ -59,6 +59,7 @@ DEFAULT_ADD_AT="today"
 DEFAULT_EDIT_AT="today"
 DEFAULT_COPY_TO="today"
 DEFAULT_COPY_FROM="yesterday"
+PAGER="true"
 
 # Use gdate instead of date when available.
 if hash gdate 2>/dev/null; then
@@ -81,6 +82,10 @@ stup()
 
   if [ -z "$COMMAND" ] && (! [ "$USAGE" = "true" ] ); then
     COMMAND="$DEFAULT_COMMAND"
+  fi
+
+  if ! [ -z "$PAGER_SWITCH" ]; then
+    PAGER="$PAGER_SWITCH"
   fi
 
   execute
@@ -465,6 +470,7 @@ execute_configure()
   wizard "categories_root"
   wizard "default_category"
   wizard "stup_editor"
+  wizard "pager"
 
   store_configuration
 
@@ -558,7 +564,7 @@ execute_log()
   if [ -z "$output" ]; then
     print_warning "Nothing found."
   else
-    echo -e "\n$output" | more
+    pager "$(echo -e "\n$output")"
   fi
 }
 
@@ -677,7 +683,7 @@ execute_usage()
     esac
   fi
 
-  echo "$output" | more
+  pager "$output"
 }
 
 execute_version()
@@ -846,6 +852,14 @@ parse_options()
         COMMAND="copy"
         shift
         ;;
+      --pager)
+        PAGER_SWITCH="true"
+        shift
+        ;;
+      --no-pager)
+        PAGER_SWITCH="false"
+        shift
+        ;;
       --) # end argument parsing
         shift
         break
@@ -971,6 +985,35 @@ wizard()
       else
         print_success "Keeping the default editor: $STUP_EDITOR."
       fi
+      ;;
+    pager)
+      PAGER="$(resolve_boolean "$PAGER" true)"
+      # Print it user-friendly
+      local use_pager="on"
+      if [ "$PAGER" = "false" ]; then
+        use_pager="off"
+      fi
+
+      if [[ "$2" ]]; then
+        print_error "$2"
+      else
+        print_info "Stup can use a pager for long output."
+        print_info "Right now it is $use_pager."
+      fi
+
+      read -e -p "Press enter to keep this setting or change it with yes/no: " use_pager
+      use_pager="$(resolve_boolean "$use_pager" keep)"
+
+      if ! [ "$use_pager" = "keep" ]; then
+        PAGER="$use_pager"
+        if [ "$PAGER" = "false" ]; then
+          print_success "Pager disabled."
+        else
+          print_success "Pager enabled."
+        fi
+      else
+        print_success "Keeping previous setting."
+      fi
   esac
 }
 
@@ -1029,6 +1072,9 @@ handle_configuration_variable()
     default_copy_to)
       DEFAULT_COPY_TO="$2"
       ;;
+    pager)
+      PAGER="$(resolve_boolean "$2" "true")"
+      ;;
   esac
 }
 
@@ -1050,6 +1096,7 @@ default_add_at=$DEFAULT_ADD_AT
 default_edit_at=$DEFAULT_EDIT_AT
 default_copy_from=$DEFAULT_COPY_FROM
 default_copy_to=$DEFAULT_COPY_TO
+pager=$PAGER
 " > "$CONFIG_FILE"
 }
 
@@ -1541,6 +1588,7 @@ List of available options:"
   printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be listed."
   printf "\n%15s   %s" " "               "If omitted, stup will list the notes of all categories."
   printf "\n%15s   %s" " "               "Example: stup log -c work week"
+  printf "\n%15s   %s" "--[no-]pager"    "Enables or disables pager for the output."
 }
 
 # Shows usage for the search command
@@ -1634,9 +1682,9 @@ usage: stup list-categories\n"
 show_usage_usage()
 {
   echo -e "Shows usage information.
-usage: stup <command> usage
-       stup <command> -h
-       stup <command> --help\n"
+usage: stup <command> usage [<options>]
+       stup <command> -h [<options>]
+       stup <command> --help [<options>]\n"
 
   printf "\n%15s   %s" "<command>"         "Specifies the name of the category whose description will change"
   printf "\n%15s   %s" " "                 "If omitted, stup will show usage information for all commands."
@@ -1645,6 +1693,7 @@ usage: stup <command> usage
   printf "\n%15s   %s" " "                 "  stup add -h"
   printf "\n%15s   %s" " "                 "  stup add --help"
   printf "\n%15s   %s" " "                 "  stup usage\n"
+  printf "\n%15s   %s" "--[no-]pager"      "Enables or disables pager for the output."
 }
 
 show_usage_version()
@@ -1691,6 +1740,15 @@ success_color()
 emphasize()
 {
   echo "${TEXT_BOLD}$1${TEXT_NORMAL}"
+}
+
+pager()
+{
+  if [ "$PAGER" = "true" ]; then
+    echo "$*" | more
+  else
+    echo "$*"
+  fi
 }
 
 # Let's go
