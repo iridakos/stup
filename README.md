@@ -332,6 +332,89 @@ $ stup log --from 2020-01-15 -c blocking
 $ stup --from 2020-01-15 -c blocking
 ```
 
+### Search notes
+
+To search your notes, use the `search` command.
+
+```bash
+$ stup search 'jira' previous-week
+```
+
+The full version of the command:
+
+```bash
+$ stup search <search-text> --from <from-date> --to <to-date> -c <category-name>
+
+# or using an alias
+
+$ stup search <search-text> <week|previous-week|month|previous-month|year|previous-year> -c <category-name>
+```
+
+where:
+
+- `<search-text>`: the text you want to find in notes
+- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is optional and if omitted the notes to be searched won't have to be **added after a specific date**
+- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is also optional and if omitted the notes to be searched won't have to be **added before a specific date**
+* `-c` or `--category`: is the category option (optional). **If omitted, you will search the notes of all categories**
+  * `<category-name>`: the name of the category whose notes you want to see
+
+In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
+
+#### Examples
+
+##### Search this week's notes
+
+```bash
+$ stup search "jira" week
+
+# or
+
+$ stup week search "jira"
+```
+
+##### Search in previous week's notes
+
+```bash
+$ stup search "reviewed" previous-week
+
+# or
+
+$ stup previous-week search "linux"
+```
+
+##### Search notes added in a specific period
+
+```bash
+$ stup search "cli" --from 2020-01-15 --to 2020-02-01
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01 search "cli"
+```
+
+##### Search notes added in a specific period in the category "blocking"
+
+```bash
+$ stup search "SSD" --from 2020-01-15 --to 2020-02-01 -c blocking
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01 -c blocking search "SSD"
+```
+
+##### Search notes added after a specific date in the category "blocking"
+
+```bash
+$ stup --from 2020-01-15 -c blocking search "SSD"
+
+# or
+
+$ stup --from 2020-01-15 -c blocking search "SSD"
+```
+
+
 ### Edit notes
 
 To manually edit notes added in a specific date use the `edit` command.

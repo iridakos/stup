@@ -126,6 +126,9 @@ execute()
     log)
       execute_log
       ;;
+    search)
+      execute_search
+      ;;
     copy)
       execute_copy
       ;;
@@ -482,8 +485,6 @@ execute_log()
   load_categories
   extract_from_to_dates
 
-  local cmd;
-
   if (! [ -z "$FROM_AT" ] && [ "$FROM_AT" = "$TO_AT" ] ); then
     AT="$FROM_AT"
     COMMAND="show"
@@ -561,6 +562,99 @@ execute_log()
   fi
 }
 
+# Searches for notes
+execute_search()
+{
+  load_categories
+  extract_from_to_dates
+
+  if [ -z "$CATEGORY" ]; then
+    echo -e "$(print_info "Searching for term '$QUERY' in all categories.")"
+  else
+    echo -e "$(print_info "Searching for term '$QUERY' in category $(emphasize $CATEGORY).")"
+  fi
+
+  if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
+    echo -e "$(print_info "Searching notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
+    target_command="sed -n "/$FROM_AT/,/$TO_AT/p""
+  elif ! [ -z "$FROM_AT" ]; then
+    echo -e "$(print_info "Searching notes from") $(display_date "$FROM_AT") $(print_info "and after")"
+    target_command="sed -n "/$FROM_AT/,//p""
+  elif ! [ -z "$TO_AT" ]; then
+    echo -e "$(print_info "Searching notes until") $(display_date "$TO_AT")"
+    target_command="sed "/$TO_AT/q""
+  else
+    echo -e "$(print_info "Searching all notes")"
+    target_command='tr -d ""'
+  fi
+
+  IFS=$'\n' read -d '' dates < <(
+    echo -e "$FROM_AT\n$TO_AT\n$(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md")" |
+    sed -e 's/.*\///' -e 's/\.[^.]*$//' |
+    sort -u |
+    $target_command
+  )
+
+  local target_categories
+
+  category_max_length=-1
+
+  if [ -n "$CATEGORY" ]; then
+    target_categories=("$CATEGORY")
+    category_max_length=$(chrlen=${#CATEGORY})
+  else
+    target_categories=( "${CATEGORIES[@]}" )
+    for c in "${CATEGORIES[@]}"; do
+      if [ ${#c} -gt $category_max_length ]; then
+        category_max_length=${#c}
+      fi
+    done
+  fi
+
+  category_max_length=$(( $category_max_length + 2 ))
+
+  local output=""
+
+  for current_date in ${dates[@]}; do
+    AT="$current_date"
+    extract_date_components
+
+    local category_count=0
+    local category_output=""
+
+    for category in "${target_categories[@]}"; do
+      local target_file="$(resolve_target_file "$category")"
+
+      if [ -f "$target_file" ]; then
+        category_count=$((category_count + 1))
+        local category_lines=()
+
+        while read line; do
+          if [[ $line =~ "$QUERY" ]]; then
+            category_lines+=("$line")
+          fi
+        done < "$target_file"
+
+        if [ ${#category_lines[@]} -gt 0 ]; then
+          for line in "${category_lines[@]}"; do
+            category_output+="$(printf "%s $(print_warning %"$category_max_length"s) %s" "[$current_date]" "[$category]" "$line\n")"
+          done
+        fi
+      fi
+    done
+
+    if [ -n "$category_output" ]; then
+      output+="$category_output"
+    fi
+  done
+
+  if [ -z "$output" ]; then
+    print_warning "Nothing found."
+  else
+    echo -e "\n$output" | more
+  fi
+}
+
 # Prints usage information
 execute_usage()
 {
@@ -569,7 +663,18 @@ execute_usage()
   if [ -z "$COMMAND" ]; then
     output="$(show_usage_all)"
   else
-    output=$("show_usage_$COMMAND")
+    case "$COMMAND" in
+      add|show|edit|configure|log|search|version)
+        output=$("show_usage_$COMMAND")
+        ;;
+      add-category|list-categories|set-category-description|order-categories)
+        output=$("show_usage_$(echo "$COMMAND" | sed 's/\-/_/g')")
+        ;;
+      *)
+        print_error "Unknown command $COMMAND"
+        exit 1
+        ;;
+    esac
   fi
 
   echo "$output" | more
@@ -672,7 +777,12 @@ parse_options()
         ;;
       -h|--help|usage)
         USAGE="true"
-        shift
+        if [ -z "$2" ]; then
+          shift
+        else
+          COMMAND="$2"
+          shift 2
+        fi
         ;;
       --add-category|add-category)
         COMMAND="add_category"
@@ -721,6 +831,16 @@ parse_options()
       --log|log)
         COMMAND="log"
         shift
+        ;;
+      --search|search)
+        COMMAND="search"
+        QUERY="$2"
+        if [ -z "$QUERY" ]; then
+          print_error "You haven't specified the query to search"
+          exit 1
+        fi
+
+        shift 2
         ;;
       --copy|copy)
         COMMAND="copy"
@@ -1249,6 +1369,10 @@ show_usage_all()
   echo -e "$(show_usage_log)" | sed -e 's/^/  /'
 
   echo ""
+  echo -e "$(emphasize "search")"
+  echo -e "$(show_usage_search)" | sed -e 's/^/  /'
+
+  echo ""
   echo -e "$(emphasize "add-category")"
   echo -e "$(show_usage_add_category)" | sed -e 's/^/  /'
 
@@ -1417,6 +1541,44 @@ List of available options:"
   printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be listed."
   printf "\n%15s   %s" " "               "If omitted, stup will list the notes of all categories."
   printf "\n%15s   %s" " "               "Example: stup log -c work week"
+}
+
+# Shows usage for the search command
+show_usage_search()
+{
+  echo -e "Searches notes containing text.
+usage: stup search [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "-f, --from"      "Specifies to search the notes from a specific date and after"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup search 'something' --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup search 'foo' --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "-t, --to"        "Specifies to search the notes added before a specific date"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option"
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup search 'something' --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup search 'foo' --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "week"            "Alias to search the notes of current week"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' week"
+  printf "\n%15s   %s" "previous-week"   "Alias to search the notes of previous week"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' previous-week"
+  printf "\n%15s   %s" "month"            "Alias to search the notes of current month"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' month"
+  printf "\n%15s   %s" "previous-month"  "Alias to search the notes of current previous-month"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' previous-month"
+  printf "\n%15s   %s" "year"            "Alias to search the notes of current year"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' year"
+  printf "\n%15s   %s" "previous"        "Alias to search the notes of previous-year"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' previous-year"
+  printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be searched."
+  printf "\n%15s   %s" " "               "If omitted, stup will search the notes of all categories."
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' -c work week"
 }
 
 # Shows usage for the add category command
