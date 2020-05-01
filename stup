@@ -169,17 +169,14 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in category $CATEGORY."
-      echo -e "Do you want to retrieve the last notes added in this category with stup?"
-      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      read -e -p "Do you want to retrieve the last notes added in this category with stup? (y/n) " search_last_entries
 
-      case "$search_last_entries" in
-        y|Y|yes|Yes)
-          resolve_last_at
-          execute_show "$AT"
-          ;;
-        *)
+      if [ "$(resolve_boolean "$search_last_entries")" = "true" ]; then
+        resolve_last_at
+        execute_show "$AT"
+      else
           exit 0
-      esac
+      fi
     fi
   else
     load_categories
@@ -233,17 +230,14 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in any category."
-      echo -e "Do you want to retrieve the last notes added with stup?"
-      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      read -e -p "Do you want to retrieve the last notes added with stup? (y/n) " search_last_entries
 
-      case "$search_last_entries" in
-        y|Y|yes|Yes)
-          resolve_last_at
-          execute_show "$AT"
-          ;;
-        *)
-          exit 0
-      esac
+      if [ "$(resolve_boolean "$search_last_entries")" = "true" ]; then
+        resolve_last_at
+        execute_show "$AT"
+      else
+        exit 0
+      fi
     fi
   fi
 }
@@ -289,9 +283,9 @@ execute_edit()
 
   if ! [ -f "$target_file" ]; then
     print_warning "Notes for category \"$CATEGORY\" on $(display_date "$AT") does not exist."
-    read -e -p ">>> Type yes|y to create and edit the file or anything else to abort: " response
+    read -e -p "Do you want to create and edit the file? (y/n) " response
 
-    if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+    if ! [ "$(resolve_boolean "$response")" = 'true' ]; then
       echo 'Aborted.'
       exit 0
     fi
@@ -357,21 +351,26 @@ execute_copy()
         invalid_input=false
 
         echo -e "\n\n$note\n\n"
-        read -e -p ">>> Copy this note [y,n,q,a]?: " response
+        read -e -p ">>> Copy this note? (yes/no/quit/all) " response
 
-        if [[ "$response" = 'y' ]]; then
-          add_note=true
-        elif [[ "$response" = 'n' ]]; then
-          add_note=false
-        elif [[ "$response" = 'q' ]]; then
-          exit 0
-        elif [[ "$response" = 'a' ]]; then
-          add_note=true
-          add_all=true
-        else
-          ask=true
-          invalid_input=true
-        fi
+        response="$(resolve_boolean "$response" "$(trim $response)")"
+        # TODO: move this into `resolve_ynqa` as soon as it's needed elsewhere
+        case "$response" in
+          true|false)
+            add_note="$response"
+            ;;
+          q|Q|[qQ][uU][iI][tT])
+            exit 0
+            ;;
+          a|A|[aA][lL][lL])
+            add_note=true
+            add_all=true
+            ;;
+          *)
+            ask=true
+            invalid_input=true
+            ;;
+        esac
       done
     fi
 
@@ -466,10 +465,9 @@ execute_configure()
 
   store_configuration
 
-  print_info "The config file contains some more goodies, would you like to edit it now?"
-  read -e -p ">>> Type yes|y to edit the file or anything else to abort: " response
+  read -e -p "The config file contains some more goodies, would you like to edit it now? (y/n) " response
 
-  if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+  if ! [ "$(resolve_boolean "$response")" = true ]; then
     exit 0
   fi
 
@@ -764,8 +762,8 @@ wizard()
         print_info "By default, the notes will be stored in $REPOSITORY_ROOT."
       fi
 
-      read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_category_root
-      new_category_root=$(echo -e "${new_category_root}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+      read -e -p "Press enter to use the default location or fill in your desired destination: " new_category_root
+      new_category_root=$(trim "$new_category_root")
 
       case "$new_category_root" in
         "")
@@ -806,8 +804,8 @@ wizard()
         print_info "The default category is currently set to \"$DEFAULT_CATEGORY\"."
       fi
 
-      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_category
-      new_default_category=$(echo -e "${new_default_category}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+      read -e -p "Press enter to keep the default or fill in a new one (ex. review): " new_default_category
+      new_default_category=$(trim "$new_default_category")
 
       case "$new_default_category" in
         "")
@@ -843,8 +841,8 @@ wizard()
         print_info "The default editor is currently set to \"$STUP_EDITOR\"."
       fi
 
-      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. vim): " new_stup_editor
-      new_stup_editor=$(echo -e "${new_stup_editor}" | tr -d '[:space:]')
+      read -e -p "Press enter to keep the default or fill in a new one (ex. vim): " new_stup_editor
+      new_stup_editor=$(trim "$new_stup_editor")
 
       if ! [[ -z "$new_stup_editor" ]]; then
         STUP_EDITOR="$new_stup_editor"
@@ -1186,6 +1184,40 @@ edit_file()
   fi
 
   $STUP_EDITOR "$1"
+}
+
+# Returns code-friendly value of given boolean
+resolve_boolean()
+{
+  local default_value="false"
+  if [[ $2 ]]; then
+    default_value="$2"
+  fi
+
+  local choice=$(trim "$1")
+
+  case "$choice" in
+    y|Y|[yY][eE][sS]|[tT][rR][uU][eE]|[oO][nN])
+      echo "true"
+      ;;
+    n|N|[nN][oO]|[fF][aA][lL][sS][eE]|[oO][fF][fF])
+      echo "false"
+      ;;
+    *)
+      echo "$default_value"
+      ;;
+  esac
+}
+
+# Trims whitespace from the beginning and end of string
+# https://unix.stackexchange.com/a/476504
+trim() {
+  local var="$*"
+  local trail=${var##*[^[:blank:]]}    # get trailing space
+  var=${var%${trail}}                  # remove trailing space
+  local lead=${var%%[^[:blank:]]*}     # get leading space
+  var=${var#${lead}}                   # remove leading space
+  printf '%s' "$var"
 }
 
 #################
