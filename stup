@@ -919,8 +919,7 @@ handle_configuration_variable()
       DEFAULT_COPY_TO="$2"
       ;;
     pager)
-      # TODO: make sure the input is correct
-      PAGER="$2"
+      PAGER="$(resolve_boolean "$2" "true")"
       ;;
   esac
 }
