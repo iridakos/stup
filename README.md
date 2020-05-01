@@ -378,7 +378,59 @@ $ stup edit @ 2020-03-24
 $ stup edit @ 2020-03-24 -c "blocking"
 ```
 
+### Copy notes
 
+To copy notes from one date to another use the `copy` command.
+
+```bash
+$ stup copy --from today --to tomorrow
+```
+
+The full version of the command:
+
+```bash
+stup copy --from <copy-from-date> --to <copy-to-date>  -c|--category "<category-name>"
+```
+
+where:
+  * `<copy-from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+    * this is optional and if omitted defaults to `yesterday`
+  * `<copy-to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+    * this is optional and if omitted defaults to `today`
+  * `-c` or `--category`: is the category option (optional). **If omitted, notes will be copied between the default category of the two dates specified**
+    * `<category-name>`: the name of the category to which the notes will be copied
+
+`stup` will prompt you for each line to be copied:
+```
+stup copy
+
+
+- Worked on some PRs
+
+
+>>> Copy this note [y,n,q,a]?:
+
+```
+
+#### Examples
+
+##### Copy notes from yesterday to today, in the default category
+
+```bash
+$ stup copy
+```
+
+##### Copy notes from a specific date, to a specific date
+
+```bash
+$ stup copy --from 2020-01-15 --to 2020-02-01
+```
+
+##### Copy notes from yesterday to tomorrow in the category "blocking"
+
+```bash
+$ stup copy --to tomorrow -c blocking
+```
 
 ### Add a new category
 
@@ -497,7 +549,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://github.com/tiosgz"><img src="https://avatars1.githubusercontent.com/u/53824308?v=4" width="100px;" alt=""/><br /><sub><b>Bohdan Potměkleč</b></sub></a><br /><a href="https://github.com/iridakos/stup/commits?author=tiosgz" title="Code">💻</a> <a href="https://github.com/iridakos/stup/issues?q=author%3Atiosgz" title="Bug reports">🐛</a> <a href="#ideas-tiosgz" title="Ideas, Planning, & Feedback">🤔</a> <a href="#question-tiosgz" title="Answering Questions">💬</a></td>
     <td align="center"><a href="https://github.com/haganbmj"><img src="https://avatars0.githubusercontent.com/u/15820761?v=4" width="100px;" alt=""/><br /><sub><b>Brendan Hagan</b></sub></a><br /><a href="#question-haganbmj" title="Answering Questions">💬</a> <a href="https://github.com/iridakos/stup/commits?author=haganbmj" title="Code">💻</a></td>
-    <td align="center"><a href="http://www.dmst.aueb.gr/dds"><img src="https://avatars3.githubusercontent.com/u/1212716?v=4" width="100px;" alt=""/><br /><sub><b>Diomidis Spinellis</b></sub></a><br /><a href="https://github.com/iridakos/stup/commits?author=dspinellis" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/dspinellis"><img src="https://avatars3.githubusercontent.com/u/1212716?v=4" width="100px;" alt=""/><br /><sub><b>Diomidis Spinellis</b></sub></a><br /><a href="https://github.com/iridakos/stup/commits?author=dspinellis" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ioanniswd"><img src="https://avatars1.githubusercontent.com/u/18213512?v=4" width="100px;" alt=""/><br /><sub><b>Giannis Poulis</b></sub></a><br /><a href="#ideas-ioanniswd" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/iridakos/stup/commits?author=ioanniswd" title="Code">💻</a></td>
   </tr>
 </table>
