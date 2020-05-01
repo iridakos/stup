@@ -463,6 +463,7 @@ execute_configure()
   wizard "categories_root"
   wizard "default_category"
   wizard "stup_editor"
+  wizard "pager"
 
   store_configuration
 
@@ -859,6 +860,35 @@ wizard()
 
       else
         print_success "Keeping the default editor: $STUP_EDITOR."
+      fi
+      ;;
+    pager)
+      PAGER="$(resolve_boolean "$PAGER" true)"
+      # Print it user-friendly
+      local use_pager="on"
+      if [ "$PAGER" = "false" ]; then
+        use_pager="off"
+      fi
+
+      if [[ "$2" ]]; then
+        print_error "$2"
+      else
+        print_info "Stup can use a pager for long output."
+        print_info "Right now it is $use_pager."
+      fi
+
+      read -e -p "Press enter to keep this setting or change it with yes/no: " use_pager
+      use_pager="$(resolve_boolean "$use_pager" keep)"
+
+      if ! [ "$use_pager" = "keep" ]; then
+        PAGER="$use_pager"
+        if [ "$PAGER" = "false" ]; then
+          print_success "Pager disabled."
+        else
+          print_success "Pager enabled."
+        fi
+      else
+        print_success "Keeping previous setting."
       fi
   esac
 }
