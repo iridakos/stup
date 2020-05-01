@@ -1068,10 +1068,14 @@ resolve_boolean()
 }
 
 # Trims whitespace from the beginning and end of string
-trim()
-{
-  # TODO: make this also strip newlines
-  echo "$1" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g'
+# https://stackoverflow.com/a/3352015
+trim() {
+  local var="$*"
+  # remove leading whitespace characters
+  var="${var#"${var%%[![:space:]]*}"}"
+  # remove trailing whitespace characters
+  var="${var%"${var##*[![:space:]]}"}"   
+  printf '%s' "$var"
 }
 
 #################
