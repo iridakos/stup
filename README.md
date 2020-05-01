@@ -601,7 +601,7 @@ This command opens the categories registry file in your editor and you can chang
 New features that are on the top of my list for `stup`:
 
 * Add [bash completion](https://github.com/iridakos/stup/issues/2)
-* Ability to [search notes](https://github.com/iridakos/stup/issues/7)
+* Support [multiple repositories](https://github.com/iridakos/stup/issues/15)
 * Ability to [export notes](https://github.com/iridakos/stup/issues/8) to a file
 
 You can find more information about what is planned to be implemented browsing the [GitHub repository's issues labeled as `new feature`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
