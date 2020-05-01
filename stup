@@ -324,7 +324,7 @@ execute_copy()
   copy_from_file="$(resolve_copy_from_file $CATEGORY)"
 
   if ! [ -f "$copy_from_file" ]; then
-    print_error "Failed to find origin file: $copy_from_file"
+    print_error "Failed to find notes for category $CATEGORY on $(display_date $FROM_AT). Looked up for file: $copy_from_file"
     exit 1
   fi
 
@@ -333,7 +333,7 @@ execute_copy()
     exit 1
   fi
 
-  print_info "About to copy from: $copy_from_file to: $target_file"
+  print_info "About to copy notes from $(display_date $FROM_AT) to $(display_date $TO_AT) for category $(emphasize $CATEGORY)"
 
   IFS=$'\n\r' read -d '' -r -a notes_to_copy < $copy_from_file
 
