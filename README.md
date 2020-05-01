@@ -378,7 +378,59 @@ $ stup edit @ 2020-03-24
 $ stup edit @ 2020-03-24 -c "blocking"
 ```
 
+### Copy notes
 
+To copy notes from one date to another use the `copy` command.
+
+```bash
+$ stup copy --from today --to tomorrow
+```
+
+The full version of the command:
+
+```bash
+stup copy --from <copy-from-date> --to <copy-to-date>  -c|--category "<category-name>"
+```
+
+where:
+  * `<copy-from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+    * this is optional and if omitted defaults to `yesterday`
+  * `<copy-to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+    * this is optional and if omitted defaults to `today`
+  * `-c` or `--category`: is the category option (optional). **If omitted, notes will be copied between the default category of the two dates specified**
+    * `<category-name>`: the name of the category to which the notes will be copied
+
+`stup` will prompt you for each line to be copied:
+```
+stup copy
+
+
+- Worked on some PRs
+
+
+>>> Copy this note [y,n,q,a]?:
+
+```
+
+#### Examples
+
+##### Copy notes from yesterday to today, in the default category
+
+```bash
+$ stup copy
+```
+
+##### Copy notes from a specific date, to a specific date
+
+```bash
+$ stup copy --from 2020-01-15 --to 2020-02-01
+```
+
+##### Copy notes from yesterday to tomorrow in the category "blocking"
+
+```bash
+$ stup copy --to tomorrow -c blocking
+```
 
 ### Add a new category
 
