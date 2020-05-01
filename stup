@@ -1241,6 +1241,10 @@ show_usage_all()
   echo -e "$(show_usage_edit)" | sed -e 's/^/  /'
 
   echo ""
+  echo -e "$(emphasize "copy")"
+  echo -e "$(show_usage_copy)" | sed -e 's/^/  /'
+
+  echo ""
   echo -e "$(emphasize "log")"
   echo -e "$(show_usage_log)" | sed -e 's/^/  /'
 
@@ -1351,6 +1355,32 @@ List of available options:"
   printf "\n%15s   %s" " "               "Example: stup edit -c work ..."
 }
 
+# Shows usage for the copy command
+show_usage_copy()
+{
+  echo -e "Copies notes of a specific category from one date to another.
+usage: stup copy [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "-f, --from"      "Specifies from which date the notes will be copied."
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option to copy from the default date (set in options)."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup copy --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup copy --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "-t, --to"        "Specifies to which date the notes will be copied"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option to copy to the default date (set in options)"
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup copy --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup copy --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be copied."
+  printf "\n%15s   %s" " "               "If omitted, stup will copy the notes of the default category."
+  printf "\n%15s   %s" " "               "Example: stup copy -c work --from yesterday --to tomorrow"
+}
+
 # Shows usage for the log command
 show_usage_log()
 {
@@ -1365,7 +1395,7 @@ List of available options:"
   printf "\n%15s   %s" " "               "Examples:"
   printf "\n%15s   %s" " "               "  stup log --from today --to 2020-08-10"
   printf "\n%15s   %s" " "               "  stup log --from 2019-04-18 --to today"
-  printf "\n%15s   %s" "-t, --to"       "Specifies to list the notes added before a specific date"
+  printf "\n%15s   %s" "-t, --to"        "Specifies to list the notes added before a specific date"
   printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
   printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
   printf "\n%15s   %s" " "               "You may omit this option"
