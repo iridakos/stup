@@ -1460,6 +1460,7 @@ List of available options:"
   printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be listed."
   printf "\n%15s   %s" " "               "If omitted, stup will list the notes of all categories."
   printf "\n%15s   %s" " "               "Example: stup log -c work week"
+  printf "\n%15s   %s" "--[no-]pager"    "Enables or disables pager for the output."
 }
 
 # Shows usage for the add category command
@@ -1515,9 +1516,9 @@ usage: stup list-categories\n"
 show_usage_usage()
 {
   echo -e "Shows usage information.
-usage: stup <command> usage
-       stup <command> -h
-       stup <command> --help\n"
+usage: stup <command> usage [<options>]
+       stup <command> -h [<options>]
+       stup <command> --help [<options>]\n"
 
   printf "\n%15s   %s" "<command>"         "Specifies the name of the category whose description will change"
   printf "\n%15s   %s" " "                 "If omitted, stup will show usage information for all commands."
@@ -1526,6 +1527,7 @@ usage: stup <command> usage
   printf "\n%15s   %s" " "                 "  stup add -h"
   printf "\n%15s   %s" " "                 "  stup add --help"
   printf "\n%15s   %s" " "                 "  stup usage\n"
+  printf "\n%15s   %s" "--[no-]pager"      "Enables or disables pager for the output."
 }
 
 show_usage_version()
