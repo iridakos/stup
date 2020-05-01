@@ -351,21 +351,26 @@ execute_copy()
         invalid_input=false
 
         echo -e "\n\n$note\n\n"
-        read -e -p ">>> Copy this note [y,n,q,a]?: " response
+        read -e -p ">>> Copy this note? (yes/no/quit/all) " response
 
-        if [[ "$response" = 'y' ]]; then
-          add_note=true
-        elif [[ "$response" = 'n' ]]; then
-          add_note=false
-        elif [[ "$response" = 'q' ]]; then
-          exit 0
-        elif [[ "$response" = 'a' ]]; then
-          add_note=true
-          add_all=true
-        else
-          ask=true
-          invalid_input=true
-        fi
+        response="$(resolve_boolean "$response" "$(trim $response)")"
+        # TODO: move this into `resolve_ynqa` as soon as it's needed elsewhere
+        case "$response" in
+          true|false)
+            add_note="$response"
+            ;;
+          q|Q|[qQ][uU][iI][tT])
+            exit 0
+            ;;
+          a|A|[aA][lL][lL])
+            add_note=true
+            add_all=true
+            ;;
+          *)
+            ask=true
+            invalid_input=true
+            ;;
+        esac
       done
     fi
 
