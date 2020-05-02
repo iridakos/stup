@@ -2,14 +2,14 @@
 
 A CLI tool to easily save, access and organize daily notes.
 
-![Version badge](https://img.shields.io/badge/version-0.1.8-green.svg)
+![Version badge](https://img.shields.io/badge/version-0.1.9-green.svg)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings since its initial purpose was to cover my need for keeping my Standup notes in a convenient way.
 
-![stup Gif demo](https://raw.githubusercontent.com/iridakos/stup/master/assets/stup-0-1-0.gif)
+![stup Gif demo](https://raw.githubusercontent.com/iridakos/stup/master/assets/stup-0-1-9.gif)
 
 ## How it works
 
