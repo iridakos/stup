@@ -433,7 +433,7 @@ execute_order_categories()
   local conf="$(resolve_categories_configuration_file)"
 
   if ! [ -f "$conf" ]; then
-    print_error "problem"
+    print_error "Couldn't find categories configuration file: $conf"
     exit 1
   fi
 
