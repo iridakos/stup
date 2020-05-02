@@ -171,7 +171,7 @@ execute_show()
         description="$(emphasize "# Notes in category: $category")"
       fi
 
-      print_warning "\n>> $description\n"
+      print_warning "\n $description\n"
       sed -e 's/^\-/•/' -e 's/^/  /' "$target_file"
 
       echo ""
