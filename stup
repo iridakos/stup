@@ -194,7 +194,7 @@ execute_show()
     for category in "${CATEGORIES[@]}"; do
       local target_file=$(resolve_target_file "$category")
 
-      if [ -f "$target_file" ]; then
+      if [ -s "$target_file" ]; then
         entries_found=true
         break
       fi
@@ -208,13 +208,13 @@ execute_show()
         local target_file=$(resolve_target_file "$category")
         local empty_category=false
 
-        if [ -f "$description_file" ]; then
+        if [ -s "$description_file" ]; then
           description="$(emphasize "$(cat $description_file)")"
         else
           description="$(emphasize "# Notes in category: $category")"
         fi
 
-        if [ -f "$target_file" ]; then
+        if [ -s "$target_file" ]; then
           IFS=$'\n' read -d '' -r -a contents < <(cat "$target_file" | tr -d '[:space:]')
 
           if [ ${#contents[@]} -eq 0 ]; then
@@ -325,7 +325,7 @@ execute_copy()
 
   copy_from_file="$(resolve_copy_from_file $CATEGORY)"
 
-  if ! [ -f "$copy_from_file" ]; then
+  if ! [ -s "$copy_from_file" ]; then
     print_error "Failed to find notes for category $CATEGORY on $(display_date $FROM_AT). Looked up for file: $copy_from_file"
     exit 1
   fi
@@ -540,7 +540,7 @@ execute_log()
     for category in "${target_categories[@]}"; do
       local target_file="$(resolve_target_file "$category")"
 
-      if [ -f "$target_file" ]; then
+      if [ -s "$target_file" ]; then
         category_count=$((category_count + 1))
 
         if [ "$category_count" -gt "1" ]; then
@@ -631,7 +631,7 @@ execute_search()
     for category in "${target_categories[@]}"; do
       local target_file="$(resolve_target_file "$category")"
 
-      if [ -f "$target_file" ]; then
+      if [ -s "$target_file" ]; then
         category_count=$((category_count + 1))
         local category_lines=()
 
