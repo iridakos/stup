@@ -1278,7 +1278,7 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" ! -empty -printf "%f\n" | sort -r)
 
   #########################
   # search in year months #
@@ -1294,7 +1294,7 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" ! -empty -printf "%f\n" | sort -r)
 
   ###################
   # search in years #
@@ -1310,7 +1310,7 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" ! -empty -printf "%f\n" | sort -r)
 
   # Exit if no previous notes file found.
   if [ -z "$AT" ]; then
