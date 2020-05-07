@@ -60,6 +60,7 @@ DEFAULT_EDIT_AT="today"
 DEFAULT_COPY_TO="today"
 DEFAULT_COPY_FROM="yesterday"
 PAGER="true"
+PAGER_COMMAND="more"
 
 # Use gdate instead of date when available.
 if hash gdate 2>/dev/null; then
@@ -86,6 +87,9 @@ stup()
 
   if ! [ -z "$PAGER_SWITCH" ]; then
     PAGER="$PAGER_SWITCH"
+  fi
+  if ! [ -z "$PAGER_CMD_ARG" ]; then
+    PAGER_COMMAND="$PAGER_CMD_ARG"
   fi
 
   execute
@@ -860,6 +864,10 @@ parse_options()
         PAGER_SWITCH="false"
         shift
         ;;
+      --pager-command|--pager-cmd)
+        PAGER_CMD_ARG="$2"
+        shift 2
+        ;;
       --) # end argument parsing
         shift
         break
@@ -1075,6 +1083,9 @@ handle_configuration_variable()
     pager)
       PAGER="$(resolve_boolean "$2" "true")"
       ;;
+    pager_command|pager_cmd)
+      PAGER_COMMAND="$2"
+      ;;
   esac
 }
 
@@ -1097,6 +1108,7 @@ default_edit_at=$DEFAULT_EDIT_AT
 default_copy_from=$DEFAULT_COPY_FROM
 default_copy_to=$DEFAULT_COPY_TO
 pager=$PAGER
+pager_command=$PAGER_COMMAND
 " > "$CONFIG_FILE"
 }
 
@@ -1745,7 +1757,7 @@ emphasize()
 pager()
 {
   if [ "$PAGER" = "true" ]; then
-    echo "$*" | more
+    echo "$*" | $PAGER_COMMAND
   else
     echo "$*"
   fi
