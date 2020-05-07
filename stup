@@ -987,29 +987,27 @@ wizard()
       fi
       ;;
     pager)
-      PAGER="$(resolve_boolean "$PAGER" true)"
-      # Print it user-friendly
-      local use_pager="on"
-      if [ "$PAGER" = "false" ]; then
-        use_pager="off"
+      if [[ -z "${PAGER+x}" ]]; then
+        PAGER="more"
       fi
 
       if [[ "$2" ]]; then
         print_error "$2"
       else
-        print_info "Stup can use a pager for long output."
-        print_info "Right now it is $use_pager."
+        print_info "Please specify which pager you want to use."
+        print_info "You can also disable it by entering '' or \"\"."
+        print_info "Right now it is set to \"$PAGER\"."
       fi
 
-      read -e -p "Press enter to keep this setting or change it with yes/no: " use_pager
-      use_pager="$(resolve_boolean "$use_pager" keep)"
+      read -e -p "Press enter to keep the default or fill in a new one (ex. less): " pager_cmd
 
-      if ! [ "$use_pager" = "keep" ]; then
-        PAGER="$use_pager"
-        if [ "$PAGER" = "false" ]; then
+      if ! [[ -z "$pager_cmd" ]]; then
+        if [ "$pager_cmd" = '""' ] || [ "$pager_cmd" = "''" ]; then
+          PAGER=""
           print_success "Pager disabled."
         else
-          print_success "Pager enabled."
+          PAGER="$pager_cmd"
+          print_success "Pager set to: $PAGER"
         fi
       else
         print_success "Keeping previous setting."
