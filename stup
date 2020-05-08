@@ -1586,7 +1586,8 @@ List of available options:"
   printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be listed."
   printf "\n%15s   %s" " "               "If omitted, stup will list the notes of all categories."
   printf "\n%15s   %s" " "               "Example: stup log -c work week"
-  printf "\n%15s   %s" "--[no-]pager"    "Enables or disables pager for the output."
+  printf "\n%15s   %s" "--pager"         "Specifies command to which output is piped."
+  printf "\n%15s   %s" "--no-pager"      "Disables piping output to pager."
 }
 
 # Shows usage for the search command
@@ -1691,7 +1692,8 @@ usage: stup <command> usage [<options>]
   printf "\n%15s   %s" " "                 "  stup add -h"
   printf "\n%15s   %s" " "                 "  stup add --help"
   printf "\n%15s   %s" " "                 "  stup usage\n"
-  printf "\n%15s   %s" "--[no-]pager"      "Enables or disables pager for the output."
+  printf "\n%15s   %s" "--pager"           "Specifies command to which output is piped."
+  printf "\n%15s   %s" "--no-pager"        "Disables piping output to pager."
 }
 
 show_usage_version()
