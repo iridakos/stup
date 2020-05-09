@@ -37,6 +37,15 @@
         "ideas",
         "code"
       ]
+    },
+    {
+      "login": "nmutalik",
+      "name": "Nikhil Mutalik",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/2798587?v=4",
+      "profile": "https://github.com/nmutalik",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
