@@ -116,7 +116,7 @@ where:
 # Implying today (if you don't define the date, the add action defaults to current date)
 $ stup add -n "A new note"
 
-# Explicit with date alias 'today' ommiting the `@` option
+# Explicit with date alias 'today' omitting the `@` option
 $ stup add today -n "A new note"
 
 # Explicit with date alias 'today'
@@ -131,11 +131,11 @@ $ stup add @ 2020-04-17 -n "A new note"
 All of the following commands are equivalent.
 
 ```bash
-# Explicit with date alias 'yesteday'
-$ stup add @ yesteday -n "A new note"
+# Explicit with date alias 'yesterday'
+$ stup add @ yesterday -n "A new note"
 
 # Explicit with date alias ommiting the `@` option
-$ stup add yesteday -n "A new note"
+$ stup add yesterday -n "A new note"
 
 # Explicit without alias (suppose the date is April 17th, 2020)
 $ stup add @ 2020-04-16 -n "A new note"
@@ -149,7 +149,7 @@ All of the following commands are equivalent.
 # Explicit with date alias 'tomorrow'
 $ stup add @ tomorrow -n "A new note"
 
-# Explicit with date alias ommiting the `@` option
+# Explicit with date alias omitting the `@` option
 $ stup add tomorrow -n "A new note"
 
 # Explicit without alias (suppose the date is April 17th, 2020)
@@ -445,7 +445,7 @@ where:
 ##### Editing yesterday's notes
 
 ```bash
-# Ommiting category option, implying the default one
+# Omitting category option, implying the default one
 $ stup edit yesterday
 
 # Editing yesterday's notes for the category with name "blocking"
@@ -455,7 +455,7 @@ $ stup edit @ yesterday -c "blocking"
 ##### Editing notes on specific date
 
 ```bash
-# Ommiting category option, implying the default one
+# Omitting category option, implying the default one
 $ stup edit @ 2020-03-24
 
 # Editing notes saved on March 24th, 2020 for the category with name "blocking"
