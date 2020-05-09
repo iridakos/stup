@@ -46,16 +46,28 @@ TEXT_REVERSE=$(tput smso)
 TEXT_UNDERLINE=$(tput smul)
 TEXT_NORMAL=$(tput sgr0)
 TEXT_GREY=$(tput setaf 248)
+NOTES_PREFIX='- '
 
 # Version
 # TODO: update version upon new releases
-VERSION="v0.1.3"
+VERSION="v0.1.9"
 
 # Some defaults (can be changed from configuration file)
 DEFAULT_COMMAND="show"
 DEFAULT_SHOW_AT="yesterday"
 DEFAULT_ADD_AT="today"
 DEFAULT_EDIT_AT="today"
+DEFAULT_COPY_TO="today"
+DEFAULT_COPY_FROM="yesterday"
+PAGER="true"
+
+# Use gdate instead of date when available.
+if hash gdate 2>/dev/null; then
+  date()
+  {
+    gdate "$@"
+  }
+fi
 
 # Stup entry point
 stup()
@@ -70,6 +82,10 @@ stup()
 
   if [ -z "$COMMAND" ] && (! [ "$USAGE" = "true" ] ); then
     COMMAND="$DEFAULT_COMMAND"
+  fi
+
+  if ! [ -z "$PAGER_SWITCH" ]; then
+    PAGER="$PAGER_SWITCH"
   fi
 
   execute
@@ -115,6 +131,12 @@ execute()
     log)
       execute_log
       ;;
+    search)
+      execute_search
+      ;;
+    copy)
+      execute_copy
+      ;;
     version)
       execute_version
       ;;
@@ -149,23 +171,20 @@ execute_show()
         description="$(emphasize "# Notes in category: $category")"
       fi
 
-      print_warning "\n>> $description\n"
+      print_warning "\n $description\n"
       sed -e 's/^\-/•/' -e 's/^/  /' "$target_file"
 
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in category $CATEGORY."
-      echo -e "Do you want to retrieve the last notes added in this category with stup?"
-      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      read -e -p "Do you want to retrieve the last notes added in this category with stup? (y/n) " search_last_entries
 
-      case "$search_last_entries" in
-        y|Y|yes|Yes)
-          resolve_last_at
-          execute_show "$AT"
-          ;;
-        *)
+      if [ "$(resolve_boolean "$search_last_entries")" = "true" ]; then
+        resolve_last_at
+        execute_show "$AT"
+      else
           exit 0
-      esac
+      fi
     fi
   else
     load_categories
@@ -175,7 +194,7 @@ execute_show()
     for category in "${CATEGORIES[@]}"; do
       local target_file=$(resolve_target_file "$category")
 
-      if [ -f "$target_file" ]; then
+      if [ -s "$target_file" ]; then
         entries_found=true
         break
       fi
@@ -189,13 +208,13 @@ execute_show()
         local target_file=$(resolve_target_file "$category")
         local empty_category=false
 
-        if [ -f "$description_file" ]; then
+        if [ -s "$description_file" ]; then
           description="$(emphasize "$(cat $description_file)")"
         else
           description="$(emphasize "# Notes in category: $category")"
         fi
 
-        if [ -f "$target_file" ]; then
+        if [ -s "$target_file" ]; then
           IFS=$'\n' read -d '' -r -a contents < <(cat "$target_file" | tr -d '[:space:]')
 
           if [ ${#contents[@]} -eq 0 ]; then
@@ -219,17 +238,14 @@ execute_show()
       echo ""
     else
       print_warning "No entries found for $(display_date $AT) in any category."
-      echo -e "Do you want to retrieve the last notes added with stup?"
-      read -e -p "Type y|Y|yes|Yes or anything else to exit: " search_last_entries
+      read -e -p "Do you want to retrieve the last notes added with stup? (y/n) " search_last_entries
 
-      case "$search_last_entries" in
-        y|Y|yes|Yes)
-          resolve_last_at
-          execute_show "$AT"
-          ;;
-        *)
-          exit 0
-      esac
+      if [ "$(resolve_boolean "$search_last_entries")" = "true" ]; then
+        resolve_last_at
+        execute_show "$AT"
+      else
+        exit 0
+      fi
     fi
   fi
 }
@@ -256,7 +272,7 @@ execute_add()
   fi
 
   for item in "${NOTES[@]}"; do
-    echo "- $item" >> $target_file
+    echo "$NOTES_PREFIX$item" >> $target_file
   done
 
   echo -e "Successfully added $(emphasize "$number_of_notes") notes in category $(emphasize "$CATEGORY") for $(display_date $AT)"
@@ -275,9 +291,9 @@ execute_edit()
 
   if ! [ -f "$target_file" ]; then
     print_warning "Notes for category \"$CATEGORY\" on $(display_date "$AT") does not exist."
-    read -e -p ">>> Type yes|y to create and edit the file or anything else to abort: " response
+    read -e -p "Do you want to create and edit the file? (y/n) " response
 
-    if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+    if ! [ "$(resolve_boolean "$response")" = 'true' ]; then
       echo 'Aborted.'
       exit 0
     fi
@@ -287,6 +303,98 @@ execute_edit()
   mkdir -p "$target_directory"
 
   edit_file "$target_file"
+}
+
+# Copies notes from one spcified date to another
+execute_copy()
+{
+  resolve_required_category
+  extract_from_to_dates
+
+  # Required for the target file
+  AT="$TO_AT"
+  extract_date_components
+
+  extract_copy_from_date_components
+
+  target_file="$(resolve_target_file $CATEGORY)"
+
+  if ! [ -f "$target_file" ]; then
+    mkdir -p "${target_file%/*}" && touch "$target_file"
+  fi
+
+  copy_from_file="$(resolve_copy_from_file $CATEGORY)"
+
+  if ! [ -s "$copy_from_file" ]; then
+    print_error "Failed to find notes for category $CATEGORY on $(display_date $FROM_AT). Looked up for file: $copy_from_file"
+    exit 1
+  fi
+
+  if [ "$copy_from_file" = $target_file ]; then
+    print_error "Origin date and target date must be different"
+    exit 1
+  fi
+
+  print_info "About to copy notes from $(display_date $FROM_AT) to $(display_date $TO_AT) for category $(emphasize $CATEGORY)"
+
+  IFS=$'\n\r' read -d '' -r -a notes_to_copy < $copy_from_file
+
+  add_all=false
+  for note in "${notes_to_copy[@]}"; do
+    if ! [ "$add_all" = true ]; then
+      ask=true
+
+      while [ "$ask" = true ]; do
+        ask=false
+
+        if [ "$invalid_input" = true ]; then
+          print_error "
+          y - Add note
+          n - Skip note
+          q - Skip all remaining notes
+          a - Add all remaining notes
+          "
+        fi
+
+        invalid_input=false
+
+        echo -e "\n\n$note\n\n"
+        read -e -p ">>> Copy this note? (yes/no/quit/all) " response
+
+        response="$(resolve_boolean "$response" "$(trim $response)")"
+        # TODO: move this into `resolve_ynqa` as soon as it's needed elsewhere
+        case "$response" in
+          true|false)
+            add_note="$response"
+            ;;
+          q|Q|[qQ][uU][iI][tT])
+            exit 0
+            ;;
+          a|A|[aA][lL][lL])
+            add_note=true
+            add_all=true
+            ;;
+          *)
+            ask=true
+            invalid_input=true
+            ;;
+        esac
+      done
+    fi
+
+    if [ "$add_note" = true ]; then
+      echo $note >> $target_file
+    fi
+
+    # Displaying only in case prompt is being skipped and all items are being
+    # added.
+    if [ "$add_all" = true ]; then
+      # Removing the prefix
+      added_note="$(sed "s/$NOTES_PREFIX//" <<< $note)"
+
+      echo -e "Added $(emphasize "$added_note") in category $(emphasize "$CATEGORY") for $(display_date $AT)"
+    fi
+  done
 }
 
 # Adds a category
@@ -325,7 +433,7 @@ execute_order_categories()
   local conf="$(resolve_categories_configuration_file)"
 
   if ! [ -f "$conf" ]; then
-    print_error "problem"
+    print_error "Couldn't find categories configuration file: $conf"
     exit 1
   fi
 
@@ -362,13 +470,13 @@ execute_configure()
   wizard "categories_root"
   wizard "default_category"
   wizard "stup_editor"
+  wizard "pager"
 
   store_configuration
 
-  print_info "The config file contains some more goodies, would you like to edit it now?"
-  read -e -p ">>> Type yes|y to edit the file or anything else to abort: " response
+  read -e -p "The config file contains some more goodies, would you like to edit it now? (y/n) " response
 
-  if ! [[ "$response" = 'y' || "$response" = 'yes' ]]; then
+  if ! [ "$(resolve_boolean "$response")" = true ]; then
     exit 0
   fi
 
@@ -383,17 +491,34 @@ execute_log()
   load_categories
   extract_from_to_dates
 
-  IFS=$'\n' read -d '' -r dates < <(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md" | sed -e 's/.*\///' -e 's/\.[^.]*$//' | sort -u -r)
+  if (! [ -z "$FROM_AT" ] && [ "$FROM_AT" = "$TO_AT" ] ); then
+    AT="$FROM_AT"
+    COMMAND="show"
+    execute_show
+    exit
+  fi
 
   if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
+    target_command="sed -n "/$FROM_AT/,/$TO_AT/p""
   elif ! [ -z "$FROM_AT" ]; then
     echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "and after")"
+    target_command="sed -n "/$FROM_AT/,//p""
   elif ! [ -z "$TO_AT" ]; then
-      echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
+    echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
+    target_command="sed "/$TO_AT/q""
   else
+    # TODO: we should prompt for confirmation here: "Are you sure you want to view all of your notes?"
     echo -e "$(print_info "Displaying all notes")"
+    target_command='tr -d ""'
   fi
+
+  IFS=$'\n' read -d '' dates < <(
+    echo -e "$FROM_AT\n$TO_AT\n$(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md")" |
+    sed -e 's/.*\///' -e 's/\.[^.]*$//' |
+    sort -u |
+    $target_command
+  )
 
   local target_categories
 
@@ -406,10 +531,6 @@ execute_log()
   local output=""
 
   for current_date in ${dates[@]}; do
-    if ! (([[ -z "$FROM_AT" ]] || [[ "$current_date" = "$FROM_AT" ]] || [[ "$current_date" > "$FROM_AT" ]] ) && ([[ -z "$TO_AT" ]] || [[ "$current_date" = "$TO_AT" ]] || [[ "$current_date" < "$TO_AT" ]])); then
-      continue
-    fi
-
     AT="$current_date"
     extract_date_components
 
@@ -419,7 +540,7 @@ execute_log()
     for category in "${target_categories[@]}"; do
       local target_file="$(resolve_target_file "$category")"
 
-      if [ -f "$target_file" ]; then
+      if [ -s "$target_file" ]; then
         category_count=$((category_count + 1))
 
         if [ "$category_count" -gt "1" ]; then
@@ -443,6 +564,99 @@ execute_log()
   if [ -z "$output" ]; then
     print_warning "Nothing found."
   else
+    pager "$(echo -e "\n$output")"
+  fi
+}
+
+# Searches for notes
+execute_search()
+{
+  load_categories
+  extract_from_to_dates
+
+  if [ -z "$CATEGORY" ]; then
+    echo -e "$(print_info "Searching for term '$QUERY' in all categories.")"
+  else
+    echo -e "$(print_info "Searching for term '$QUERY' in category $(emphasize $CATEGORY).")"
+  fi
+
+  if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
+    echo -e "$(print_info "Searching notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
+    target_command="sed -n "/$FROM_AT/,/$TO_AT/p""
+  elif ! [ -z "$FROM_AT" ]; then
+    echo -e "$(print_info "Searching notes from") $(display_date "$FROM_AT") $(print_info "and after")"
+    target_command="sed -n "/$FROM_AT/,//p""
+  elif ! [ -z "$TO_AT" ]; then
+    echo -e "$(print_info "Searching notes until") $(display_date "$TO_AT")"
+    target_command="sed "/$TO_AT/q""
+  else
+    echo -e "$(print_info "Searching all notes")"
+    target_command='tr -d ""'
+  fi
+
+  IFS=$'\n' read -d '' dates < <(
+    echo -e "$FROM_AT\n$TO_AT\n$(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md")" |
+    sed -e 's/.*\///' -e 's/\.[^.]*$//' |
+    sort -u |
+    $target_command
+  )
+
+  local target_categories
+
+  category_max_length=-1
+
+  if [ -n "$CATEGORY" ]; then
+    target_categories=("$CATEGORY")
+    category_max_length=$(chrlen=${#CATEGORY})
+  else
+    target_categories=( "${CATEGORIES[@]}" )
+    for c in "${CATEGORIES[@]}"; do
+      if [ ${#c} -gt $category_max_length ]; then
+        category_max_length=${#c}
+      fi
+    done
+  fi
+
+  category_max_length=$(( $category_max_length + 2 ))
+
+  local output=""
+
+  for current_date in ${dates[@]}; do
+    AT="$current_date"
+    extract_date_components
+
+    local category_count=0
+    local category_output=""
+
+    for category in "${target_categories[@]}"; do
+      local target_file="$(resolve_target_file "$category")"
+
+      if [ -s "$target_file" ]; then
+        category_count=$((category_count + 1))
+        local category_lines=()
+
+        while read line; do
+          if [[ $line =~ "$QUERY" ]]; then
+            category_lines+=("$line")
+          fi
+        done < "$target_file"
+
+        if [ ${#category_lines[@]} -gt 0 ]; then
+          for line in "${category_lines[@]}"; do
+            category_output+="$(printf "%s $(print_warning %"$category_max_length"s) %s" "[$current_date]" "[$category]" "$line\n")"
+          done
+        fi
+      fi
+    done
+
+    if [ -n "$category_output" ]; then
+      output+="$category_output"
+    fi
+  done
+
+  if [ -z "$output" ]; then
+    print_warning "Nothing found."
+  else
     echo -e "\n$output" | more
   fi
 }
@@ -455,10 +669,21 @@ execute_usage()
   if [ -z "$COMMAND" ]; then
     output="$(show_usage_all)"
   else
-    output=$("show_usage_$COMMAND")
+    case "$COMMAND" in
+      add|show|edit|configure|log|search|version)
+        output=$("show_usage_$COMMAND")
+        ;;
+      add-category|list-categories|set-category-description|order-categories)
+        output=$("show_usage_$(echo "$COMMAND" | sed 's/\-/_/g')")
+        ;;
+      *)
+        print_error "Unknown command $COMMAND"
+        exit 1
+        ;;
+    esac
   fi
 
-  echo "$output" | more
+  pager "$output"
 }
 
 execute_version()
@@ -517,14 +742,23 @@ parse_options()
         ;;
       week|month|year|previous-week|previous-month|previous-year)
         FROM_TO_ALIAS="$1"
+        if [ -z "$COMMAND" ];then
+          COMMAND="log"
+        fi
         shift
         ;;
       --from)
         FROM_AT="$2"
+        if [ -z "$COMMAND" ]; then
+          COMMAND="log"
+        fi
         shift 2
         ;;
       --to)
         TO_AT="$2"
+        if [ -z "$COMMAND" ]; then
+          COMMAND="log"
+        fi
         shift 2
         ;;
       --add|add)
@@ -549,7 +783,12 @@ parse_options()
         ;;
       -h|--help|usage)
         USAGE="true"
-        shift
+        if [ -z "$2" ]; then
+          shift
+        else
+          COMMAND="$2"
+          shift 2
+        fi
         ;;
       --add-category|add-category)
         COMMAND="add_category"
@@ -599,6 +838,28 @@ parse_options()
         COMMAND="log"
         shift
         ;;
+      --search|search)
+        COMMAND="search"
+        QUERY="$2"
+        if [ -z "$QUERY" ]; then
+          print_error "You haven't specified the query to search"
+          exit 1
+        fi
+
+        shift 2
+        ;;
+      --copy|copy)
+        COMMAND="copy"
+        shift
+        ;;
+      --pager)
+        PAGER_SWITCH="true"
+        shift
+        ;;
+      --no-pager)
+        PAGER_SWITCH="false"
+        shift
+        ;;
       --) # end argument parsing
         shift
         break
@@ -635,8 +896,8 @@ wizard()
         print_info "By default, the notes will be stored in $REPOSITORY_ROOT."
       fi
 
-      read -e -p ">>> Press enter to use the default location or fill in your desired destination: " new_category_root
-      new_category_root=$(echo -e "${new_category_root}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+      read -e -p "Press enter to use the default location or fill in your desired destination: " new_category_root
+      new_category_root=$(trim "$new_category_root")
 
       case "$new_category_root" in
         "")
@@ -677,8 +938,8 @@ wizard()
         print_info "The default category is currently set to \"$DEFAULT_CATEGORY\"."
       fi
 
-      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. review): " new_default_category
-      new_default_category=$(echo -e "${new_default_category}" | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g')
+      read -e -p "Press enter to keep the default or fill in a new one (ex. review): " new_default_category
+      new_default_category=$(trim "$new_default_category")
 
       case "$new_default_category" in
         "")
@@ -714,8 +975,8 @@ wizard()
         print_info "The default editor is currently set to \"$STUP_EDITOR\"."
       fi
 
-      read -e -p ">>> Press enter to keep the default or fill in a new one (ex. vim): " new_stup_editor
-      new_stup_editor=$(echo -e "${new_stup_editor}" | tr -d '[:space:]')
+      read -e -p "Press enter to keep the default or fill in a new one (ex. vim): " new_stup_editor
+      new_stup_editor=$(trim "$new_stup_editor")
 
       if ! [[ -z "$new_stup_editor" ]]; then
         STUP_EDITOR="$new_stup_editor"
@@ -723,6 +984,35 @@ wizard()
 
       else
         print_success "Keeping the default editor: $STUP_EDITOR."
+      fi
+      ;;
+    pager)
+      PAGER="$(resolve_boolean "$PAGER" true)"
+      # Print it user-friendly
+      local use_pager="on"
+      if [ "$PAGER" = "false" ]; then
+        use_pager="off"
+      fi
+
+      if [[ "$2" ]]; then
+        print_error "$2"
+      else
+        print_info "Stup can use a pager for long output."
+        print_info "Right now it is $use_pager."
+      fi
+
+      read -e -p "Press enter to keep this setting or change it with yes/no: " use_pager
+      use_pager="$(resolve_boolean "$use_pager" keep)"
+
+      if ! [ "$use_pager" = "keep" ]; then
+        PAGER="$use_pager"
+        if [ "$PAGER" = "false" ]; then
+          print_success "Pager disabled."
+        else
+          print_success "Pager enabled."
+        fi
+      else
+        print_success "Keeping previous setting."
       fi
   esac
 }
@@ -776,6 +1066,15 @@ handle_configuration_variable()
     default_edit_at)
       DEFAULT_EDIT_AT="$2"
       ;;
+    default_copy_from)
+      DEFAULT_COPY_FROM="$2"
+      ;;
+    default_copy_to)
+      DEFAULT_COPY_TO="$2"
+      ;;
+    pager)
+      PAGER="$(resolve_boolean "$2" "true")"
+      ;;
   esac
 }
 
@@ -795,6 +1094,9 @@ default_command=$DEFAULT_COMMAND
 default_show_at=$DEFAULT_SHOW_AT
 default_add_at=$DEFAULT_ADD_AT
 default_edit_at=$DEFAULT_EDIT_AT
+default_copy_from=$DEFAULT_COPY_FROM
+default_copy_to=$DEFAULT_COPY_TO
+pager=$PAGER
 " > "$CONFIG_FILE"
 }
 
@@ -836,6 +1138,23 @@ extract_date_components()
   esac
 }
 
+extract_copy_from_date_components()
+{
+  case "$FROM_AT" in
+    today|yesterday|tomorrow)
+      COPY_FROM_YEAR=$(date -d "$FROM_AT" +"%Y")
+      COPY_FROM_MONTH=$(date -d "$FROM_AT" +"%m")
+      COPY_FROM_DAY=$(date -d "$FROM_AT" +"%d")
+      ;;
+    *)
+      IFS='-' read -ra parts <<< "$FROM_AT"
+      COPY_FROM_YEAR="${parts[0]}"
+      COPY_FROM_MONTH="${parts[1]}"
+      COPY_FROM_DAY="${parts[2]}"
+      ;;
+  esac
+}
+
 # Properly sets from and to dates based on aliases
 extract_from_to_dates()
 {
@@ -866,6 +1185,26 @@ extract_from_to_dates()
       TO_AT=$(date -d "today - 1 year" +"%Y-12-31")
       ;;
     "")
+      case "$FROM_AT" in
+        today|yesterday|tomorrow)
+          FROM_AT=$(date -d $FROM_AT +"%Y-%m-%d")
+          ;;
+        '')
+          if [ $COMMAND = copy ]; then
+            FROM_AT="$DEFAULT_COPY_FROM"
+          fi
+          ;;
+      esac
+      case "$TO_AT" in
+        today|yesterday|tomorrow)
+          TO_AT=$(date -d $TO_AT +"%Y-%m-%d")
+          ;;
+        '')
+          if [ $COMMAND = copy ]; then
+            TO_AT="$DEFAULT_COPY_TO"
+          fi
+          ;;
+      esac
       ;;
     *)
       print_warning "I don't know how to handle $FROM_TO_ALIAS"
@@ -939,7 +1278,7 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" ! -empty -printf "%f\n" | sort -r)
 
   #########################
   # search in year months #
@@ -955,7 +1294,7 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" ! -empty -printf "%f\n" | sort -r)
 
   ###################
   # search in years #
@@ -971,7 +1310,7 @@ resolve_last_at()
       AT="${filename%.*}"
       return
     fi
-  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" -printf "%f\n" | sort -r)
+  done < <(find $REPOSITORY_ROOT -path "$target_path/*.md" ! -empty -printf "%f\n" | sort -r)
 
   # Exit if no previous notes file found.
   if [ -z "$AT" ]; then
@@ -993,6 +1332,11 @@ resolve_target_file()
   echo "$REPOSITORY_ROOT/$1/$YEAR/$MONTH/$YEAR-$MONTH-$DAY.md"
 }
 
+resolve_copy_from_file()
+{
+  echo "$REPOSITORY_ROOT/$1/$COPY_FROM_YEAR/$COPY_FROM_MONTH/$COPY_FROM_YEAR-$COPY_FROM_MONTH-$COPY_FROM_DAY.md"
+}
+
 # Resolves the filename of the categories configuration
 resolve_categories_configuration_file()
 {
@@ -1007,6 +1351,40 @@ edit_file()
   fi
 
   $STUP_EDITOR "$1"
+}
+
+# Returns code-friendly value of given boolean
+resolve_boolean()
+{
+  local default_value="false"
+  if [[ $2 ]]; then
+    default_value="$2"
+  fi
+
+  local choice=$(trim "$1")
+
+  case "$choice" in
+    y|Y|[yY][eE][sS]|[tT][rR][uU][eE]|[oO][nN])
+      echo "true"
+      ;;
+    n|N|[nN][oO]|[fF][aA][lL][sS][eE]|[oO][fF][fF])
+      echo "false"
+      ;;
+    *)
+      echo "$default_value"
+      ;;
+  esac
+}
+
+# Trims whitespace from the beginning and end of string
+# https://unix.stackexchange.com/a/476504
+trim() {
+  local var="$*"
+  local trail=${var##*[^[:blank:]]}    # get trailing space
+  var=${var%${trail}}                  # remove trailing space
+  local lead=${var%%[^[:blank:]]*}     # get leading space
+  var=${var#${lead}}                   # remove leading space
+  printf '%s' "$var"
 }
 
 #################
@@ -1030,8 +1408,16 @@ show_usage_all()
   echo -e "$(show_usage_edit)" | sed -e 's/^/  /'
 
   echo ""
+  echo -e "$(emphasize "copy")"
+  echo -e "$(show_usage_copy)" | sed -e 's/^/  /'
+
+  echo ""
   echo -e "$(emphasize "log")"
   echo -e "$(show_usage_log)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "search")"
+  echo -e "$(show_usage_search)" | sed -e 's/^/  /'
 
   echo ""
   echo -e "$(emphasize "add-category")"
@@ -1140,6 +1526,32 @@ List of available options:"
   printf "\n%15s   %s" " "               "Example: stup edit -c work ..."
 }
 
+# Shows usage for the copy command
+show_usage_copy()
+{
+  echo -e "Copies notes of a specific category from one date to another.
+usage: stup copy [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "-f, --from"      "Specifies from which date the notes will be copied."
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option to copy from the default date (set in options)."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup copy --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup copy --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "-t, --to"        "Specifies to which date the notes will be copied"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option to copy to the default date (set in options)"
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup copy --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup copy --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be copied."
+  printf "\n%15s   %s" " "               "If omitted, stup will copy the notes of the default category."
+  printf "\n%15s   %s" " "               "Example: stup copy -c work --from yesterday --to tomorrow"
+}
+
 # Shows usage for the log command
 show_usage_log()
 {
@@ -1154,7 +1566,7 @@ List of available options:"
   printf "\n%15s   %s" " "               "Examples:"
   printf "\n%15s   %s" " "               "  stup log --from today --to 2020-08-10"
   printf "\n%15s   %s" " "               "  stup log --from 2019-04-18 --to today"
-  printf "\n%15s   %s" "-t, --to"       "Specifies to list the notes added before a specific date"
+  printf "\n%15s   %s" "-t, --to"        "Specifies to list the notes added before a specific date"
   printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
   printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
   printf "\n%15s   %s" " "               "You may omit this option"
@@ -1176,6 +1588,45 @@ List of available options:"
   printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be listed."
   printf "\n%15s   %s" " "               "If omitted, stup will list the notes of all categories."
   printf "\n%15s   %s" " "               "Example: stup log -c work week"
+  printf "\n%15s   %s" "--[no-]pager"    "Enables or disables pager for the output."
+}
+
+# Shows usage for the search command
+show_usage_search()
+{
+  echo -e "Searches notes containing text.
+usage: stup search [<options>]\n
+List of available options:"
+
+  printf "\n%15s   %s" "-f, --from"      "Specifies to search the notes from a specific date and after"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option."
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup search 'something' --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup search 'foo' --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "-t, --to"        "Specifies to search the notes added before a specific date"
+  printf "\n%15s   %s" " "               "The date can be explicit in the format YYYY-MM-DD"
+  printf "\n%15s   %s" " "               "or one of the aliases: yesterday, today, tomorrow"
+  printf "\n%15s   %s" " "               "You may omit this option"
+  printf "\n%15s   %s" " "               "Examples:"
+  printf "\n%15s   %s" " "               "  stup search 'something' --from today --to 2020-08-10"
+  printf "\n%15s   %s" " "               "  stup search 'foo' --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "week"            "Alias to search the notes of current week"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' week"
+  printf "\n%15s   %s" "previous-week"   "Alias to search the notes of previous week"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' previous-week"
+  printf "\n%15s   %s" "month"            "Alias to search the notes of current month"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' month"
+  printf "\n%15s   %s" "previous-month"  "Alias to search the notes of current previous-month"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' previous-month"
+  printf "\n%15s   %s" "year"            "Alias to search the notes of current year"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' year"
+  printf "\n%15s   %s" "previous"        "Alias to search the notes of previous-year"
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' previous-year"
+  printf "\n%15s   %s" "-c, --category"  "Specifies the category whose notes will be searched."
+  printf "\n%15s   %s" " "               "If omitted, stup will search the notes of all categories."
+  printf "\n%15s   %s" " "               "Example: stup search 'foo' -c work week"
 }
 
 # Shows usage for the add category command
@@ -1231,9 +1682,9 @@ usage: stup list-categories\n"
 show_usage_usage()
 {
   echo -e "Shows usage information.
-usage: stup <command> usage
-       stup <command> -h
-       stup <command> --help\n"
+usage: stup <command> usage [<options>]
+       stup <command> -h [<options>]
+       stup <command> --help [<options>]\n"
 
   printf "\n%15s   %s" "<command>"         "Specifies the name of the category whose description will change"
   printf "\n%15s   %s" " "                 "If omitted, stup will show usage information for all commands."
@@ -1242,6 +1693,7 @@ usage: stup <command> usage
   printf "\n%15s   %s" " "                 "  stup add -h"
   printf "\n%15s   %s" " "                 "  stup add --help"
   printf "\n%15s   %s" " "                 "  stup usage\n"
+  printf "\n%15s   %s" "--[no-]pager"      "Enables or disables pager for the output."
 }
 
 show_usage_version()
@@ -1288,6 +1740,15 @@ success_color()
 emphasize()
 {
   echo "${TEXT_BOLD}$1${TEXT_NORMAL}"
+}
+
+pager()
+{
+  if [ "$PAGER" = "true" ]; then
+    echo "$*" | more
+  else
+    echo "$*"
+  fi
 }
 
 # Let's go

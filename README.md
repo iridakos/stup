@@ -2,14 +2,14 @@
 
 A CLI tool to easily save, access and organize daily notes.
 
-![Version badge](https://img.shields.io/badge/version-0.1.3-green.svg)
+![Version badge](https://img.shields.io/badge/version-0.1.9-green.svg)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings since its initial purpose was to cover my need for keeping my Standup notes in a convenient way.
 
-![stup Gif demo](https://raw.githubusercontent.com/iridakos/stup/master/assets/stup-0-1-0.gif)
+![stup Gif demo](https://raw.githubusercontent.com/iridakos/stup/master/assets/stup-0-1-9.gif)
 
 ## How it works
 
@@ -52,6 +52,18 @@ cd stup
 cp ./stup ~/.local/bin
 ```
 
+## Compatibility
+
+The script has been tested in:
+
+- Ubuntu 18.04
+- Ubuntu 19.10
+- Debian 9
+
+but it should be running without problems in other Linux Distros as well.
+
+If you face any problems though, feel free to open an issue reporting your Distro and its version.
+
 ## Configuration
 
 Before you start using `stup` you have to configure it with:
@@ -65,6 +77,7 @@ Follow the wizard to define:
 * to which directory `stup` will be saving your notes
 * what is the name of the default category \*
 * what is the editor you want to use to manually edit your notes when using the `edit` command
+* if you want to use pager for long outputs (`log` and `usage`)
 
 It also asks you if you want to edit the file and change the defaults in case you omit some arguments.
 
@@ -237,6 +250,172 @@ $ stup show @ 2020-04-01
 $ stup show today -n "pull-requests"
 ```
 
+### Log notes
+
+To list your notes for a given period, use the `log` command.
+
+```bash
+$ stup log previous-week
+```
+
+The full version of the command:
+
+```bash
+$ stup log --from <from-date> --to <to-date> -c <category-name>
+
+# or using an alias
+
+$ stup log <week|previous-week|month|previous-month|year|previous-year>
+```
+
+where:
+
+- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is optional and if omitted the notes to be displayed won't have be **added after a specific date**
+- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is also optional and if omitted the notes to be displayed won't have be **added before a specific date**
+* `-c` or `--category`: is the category option (optional). **If omitted, you will view the notes of all categories**
+  * `<category-name>`: the name of the category whose notes you want to see
+
+In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
+
+In both cases, you may skip the `log` literal given that you set either an alias or one of the `from` and `to` flags.
+
+#### Examples
+
+##### Log of this week's notes
+
+```bash
+$ stup log week
+
+# or
+
+$ stup week
+```
+
+##### Log of previous week's notes
+
+```bash
+$ stup log previous-week
+
+# or
+
+$ stup previous-week
+```
+
+##### Log of notes added in a specific period
+
+```bash
+$ stup log --from 2020-01-15 --to 2020-02-01
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01
+```
+
+##### Log of notes added in a specific period in the category "blocking"
+
+```bash
+$ stup log --from 2020-01-15 --to 2020-02-01 -c blocking
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01 -c blocking
+```
+
+##### Log of notes added after a specific date in the category "blocking"
+
+```bash
+$ stup log --from 2020-01-15 -c blocking
+
+# or
+
+$ stup --from 2020-01-15 -c blocking
+```
+
+### Search notes
+
+To search your notes, use the `search` command.
+
+```bash
+$ stup search 'jira' previous-week
+```
+
+The full version of the command:
+
+```bash
+$ stup search <search-text> --from <from-date> --to <to-date> -c <category-name>
+
+# or using an alias
+
+$ stup search <search-text> <week|previous-week|month|previous-month|year|previous-year> -c <category-name>
+```
+
+where:
+
+- `<search-text>`: the text you want to find in notes
+- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is optional and if omitted the notes to be searched won't have to be **added after a specific date**
+- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+  - this is also optional and if omitted the notes to be searched won't have to be **added before a specific date**
+* `-c` or `--category`: is the category option (optional). **If omitted, you will search the notes of all categories**
+  * `<category-name>`: the name of the category whose notes you want to see
+
+In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
+
+#### Examples
+
+##### Search this week's notes
+
+```bash
+$ stup search "jira" week
+
+# or
+
+$ stup week search "jira"
+```
+
+##### Search in previous week's notes
+
+```bash
+$ stup search "reviewed" previous-week
+
+# or
+
+$ stup previous-week search "linux"
+```
+
+##### Search notes added in a specific period
+
+```bash
+$ stup search "cli" --from 2020-01-15 --to 2020-02-01
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01 search "cli"
+```
+
+##### Search notes added in a specific period in the category "blocking"
+
+```bash
+$ stup search "SSD" --from 2020-01-15 --to 2020-02-01 -c blocking
+
+# or
+
+$ stup --from 2020-01-15 --to 2020-02-01 -c blocking search "SSD"
+```
+
+##### Search notes added after a specific date in the category "blocking"
+
+```bash
+$ stup --from 2020-01-15 -c blocking search "SSD"
+
+# or
+
+$ stup --from 2020-01-15 -c blocking search "SSD"
+```
+
+
 ### Edit notes
 
 To manually edit notes added in a specific date use the `edit` command.
@@ -283,60 +462,58 @@ $ stup edit @ 2020-03-24
 $ stup edit @ 2020-03-24 -c "blocking"
 ```
 
+### Copy notes
 
-### Log notes
-
-To list your notes for a given period, use the `log` command.
+To copy notes from one date to another use the `copy` command.
 
 ```bash
-$ stup log previous-week
+$ stup copy --from today --to tomorrow
 ```
 
 The full version of the command:
 
 ```bash
-$ stup log --from <from-date> --to <to-date> -c <category-name>
-
-# or using an alias
-
-$ stup log <week|previous-week|month|previous-month|year|previous-year>
+stup copy --from <copy-from-date> --to <copy-to-date>  -c|--category "<category-name>"
 ```
 
 where:
+  * `<copy-from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+    * this is optional and if omitted defaults to `yesterday`
+  * `<copy-to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
+    * this is optional and if omitted defaults to `today`
+  * `-c` or `--category`: is the category option (optional). **If omitted, notes will be copied between the default category of the two dates specified**
+    * `<category-name>`: the name of the category to which the notes will be copied
 
-- `<from-date>`: is a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
-  - this is optional and if omitted the notes to be displayed won't have be **added after a specific date**
-- `<to-date>`: is also a date alias (`today`, `yesterday`, `tomorrow`) or a specific date using the format `YYYY-MM-DD`, for example: 2020-04-18
-  - this is also optional and if omitted the notes to be displayed won't have be **added before a specific date**
-* `-c` or `--category`: is the category option (optional). **If omitted, you will view the notes of all categories**
-  * `<category-name>`: the name of the category whose notes you want to see
+`stup` will prompt you for each line to be copied:
+```
+stup copy
 
-In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
+
+- Worked on some PRs
+
+
+>>> Copy this note [y,n,q,a]?:
+
+```
 
 #### Examples
 
-##### Log of this week's notes
+##### Copy notes from yesterday to today, in the default category
 
 ```bash
-$ stup log week
+$ stup copy
 ```
 
-##### Log of previous week's notes
+##### Copy notes from a specific date, to a specific date
 
 ```bash
-$ stup log previous-week
+$ stup copy --from 2020-01-15 --to 2020-02-01
 ```
 
-##### Log of notes added in a specific period
+##### Copy notes from yesterday to tomorrow in the category "blocking"
 
 ```bash
-$ stup log --from 2020-01-15 --to 2020-02-01
-```
-
-##### Log of notes added in a specific period in the category "blocking"
-
-```bash
-$ stup log --from 2020-01-15 --to 2020-02-01 -c blocking
+$ stup copy --to tomorrow -c blocking
 ```
 
 ### Add a new category
@@ -425,7 +602,7 @@ This command opens the categories registry file in your editor and you can chang
 New features that are on the top of my list for `stup`:
 
 * Add [bash completion](https://github.com/iridakos/stup/issues/2)
-* Ability to [search notes](https://github.com/iridakos/stup/issues/7)
+* Support [multiple repositories](https://github.com/iridakos/stup/issues/15)
 * Ability to [export notes](https://github.com/iridakos/stup/issues/8) to a file
 
 You can find more information about what is planned to be implemented browsing the [GitHub repository's issues labeled as `new feature`](https://github.com/iridakos/stup/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+feature%22)
@@ -455,7 +632,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/tiosgz"><img src="https://avatars1.githubusercontent.com/u/53824308?v=4" width="100px;" alt=""/><br /><sub><b>Bohdan Potměkleč</b></sub></a><br /><a href="https://github.com/iridakos/stup/commits?author=tiosgz" title="Code">💻</a> <a href="https://github.com/iridakos/stup/issues?q=author%3Atiosgz" title="Bug reports">🐛</a> <a href="#ideas-tiosgz" title="Ideas, Planning, & Feedback">🤔</a> <a href="#question-tiosgz" title="Answering Questions">💬</a></td>
-    <td align="center"><a href="https://github.com/haganbmj"><img src="https://avatars0.githubusercontent.com/u/15820761?v=4" width="100px;" alt=""/><br /><sub><b>Brendan Hagan</b></sub></a><br /><a href="#question-haganbmj" title="Answering Questions">💬</a> <a href="https://github.com/iridakos/stup/commits?author=haganbmj" title="Code">💻</a> <a href="#ideas-haganbmj" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/haganbmj"><img src="https://avatars0.githubusercontent.com/u/15820761?v=4" width="100px;" alt=""/><br /><sub><b>Brendan Hagan</b></sub></a><br /><a href="#question-haganbmj" title="Answering Questions">💬</a> <a href="https://github.com/iridakos/stup/commits?author=haganbmj" title="Code">💻</a> <a h
+    <td align="center"><a href="https://github.com/ioanniswd"><img src="https://avatars1.githubusercontent.com/u/18213512?v=4" width="100px;" alt=""/><br /><sub><b>Giannis Poulis</b></sub></a><br /><a href="#ideas-ioanniswd" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/iridakos/stup/commits?author=ioanniswd" title="Code">💻</a></td>
   </tr>
 </table>
 
