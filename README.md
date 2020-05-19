@@ -4,7 +4,7 @@ A CLI tool to easily save, access and organize daily notes.
 
 ![Version badge](https://img.shields.io/badge/version-0.1.9-green.svg)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The name derives from the [**St**and**up**](https://en.wikipedia.org/wiki/Stand-up_meeting) meetings since its initial purpose was to cover my need for keeping my Standup notes in a convenient way.
@@ -635,6 +635,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/haganbmj"><img src="https://avatars0.githubusercontent.com/u/15820761?v=4" width="100px;" alt=""/><br /><sub><b>Brendan Hagan</b></sub></a><br /><a href="#question-haganbmj" title="Answering Questions">💬</a> <a href="https://github.com/iridakos/stup/commits?author=haganbmj" title="Code">💻</a> <a href="#ideas-haganbmj" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/ioanniswd"><img src="https://avatars1.githubusercontent.com/u/18213512?v=4" width="100px;" alt=""/><br /><sub><b>Giannis Poulis</b></sub></a><br /><a href="#ideas-ioanniswd" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/iridakos/stup/commits?author=ioanniswd" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/nmutalik"><img src="https://avatars3.githubusercontent.com/u/2798587?v=4" width="100px;" alt=""/><br /><sub><b>Nikhil Mutalik</b></sub></a><br /><a href="https://github.com/iridakos/stup/commits?author=nmutalik" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/sylvandb"><img src="https://avatars3.githubusercontent.com/u/1384297?v=4" width="100px;" alt=""/><br /><sub><b>sylvandb</b></sub></a><br /><a href="https://github.com/iridakos/stup/pulls?q=is%3Apr+reviewed-by%3Asylvandb" title="Reviewed Pull Requests">👀</a></td>
   </tr>
 </table>
 
