@@ -59,7 +59,7 @@ DEFAULT_ADD_AT="today"
 DEFAULT_EDIT_AT="today"
 DEFAULT_COPY_TO="today"
 DEFAULT_COPY_FROM="yesterday"
-PAGER="more"
+STUP_PAGER="${PAGER:-more}"
 
 # Use gdate instead of date when available.
 if hash gdate 2>/dev/null; then
@@ -85,7 +85,7 @@ stup()
   fi
 
   if ! [ -z "${PAGER_SWITCH+x}" ]; then
-    PAGER="$PAGER_SWITCH"
+    STUP_PAGER="$PAGER_SWITCH"
   fi
 
   execute
@@ -857,7 +857,7 @@ parse_options()
         shift 2
         ;;
       --no-pager)
-        PAGER_SWITCH=""
+        PAGER_SWITCH="false"
         shift
         ;;
       --) # end argument parsing
@@ -987,27 +987,31 @@ wizard()
       fi
       ;;
     pager)
-      if [[ -z "${PAGER+x}" ]]; then
-        PAGER="more"
+      if [[ -z "${STUP_PAGER+x}" ]]; then
+        STUP_PAGER="${PAGER:-more}"
       fi
 
       if [[ "$2" ]]; then
         print_error "$2"
       else
         print_info "Please specify which pager you want to use."
-        print_info "You can also disable it by entering '' or \"\"."
-        print_info "Right now it is set to \"$PAGER\"."
+        print_info "You can also disable it by entering \"false\""
+        print_info "or always use your \$PAGER by entering '' or \"\"."
+        print_info "Right now it is set to \"$STUP_PAGER\"."
       fi
 
       read -e -p "Press enter to keep the default or fill in a new one (ex. less): " pager_cmd
 
       if ! [[ -z "$pager_cmd" ]]; then
         if [ "$pager_cmd" = '""' ] || [ "$pager_cmd" = "''" ]; then
-          PAGER=""
+          STUP_PAGER=""
+          print_success "Pager set to inherit environment variable \$PAGER."
+        elif [ "$pager_cmd" = "false" ]; then
+          STUP_PAGER="false"
           print_success "Pager disabled."
         else
-          PAGER="$pager_cmd"
-          print_success "Pager set to: $PAGER"
+          STUP_PAGER="$pager_cmd"
+          print_success "Pager set to: $STUP_PAGER"
         fi
       else
         print_success "Keeping previous setting."
@@ -1071,7 +1075,7 @@ handle_configuration_variable()
       DEFAULT_COPY_TO="$2"
       ;;
     pager)
-      PAGER="$2"
+      STUP_PAGER="$2"
       ;;
   esac
 }
@@ -1094,7 +1098,7 @@ default_add_at=$DEFAULT_ADD_AT
 default_edit_at=$DEFAULT_EDIT_AT
 default_copy_from=$DEFAULT_COPY_FROM
 default_copy_to=$DEFAULT_COPY_TO
-pager=$PAGER
+pager=$STUP_PAGER
 " > "$CONFIG_FILE"
 }
 
@@ -1744,8 +1748,12 @@ emphasize()
 
 pager()
 {
-  if ! [ -z "$PAGER" ]; then
-    echo "$*" | $PAGER
+  # Fallback to system pager
+  if [ -z "$STUP_PAGER" ]; then
+    STUP_PAGER="$PAGER"
+  fi
+  if ! [ -z "$STUP_PAGER" ] && ! [ "$STUP_PAGER" = "false" ]; then
+    echo "$*" | $STUP_PAGER
   else
     echo "$*"
   fi
