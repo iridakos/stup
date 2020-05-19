@@ -77,7 +77,7 @@ Follow the wizard to define:
 * to which directory `stup` will be saving your notes
 * what is the name of the default category \*
 * what is the editor you want to use to manually edit your notes when using the `edit` command
-* if you want to use pager for long outputs (`log` and `usage`)
+* what is the pager you want to use for long outputs (`log` and `usage`)
 
 It also asks you if you want to edit the file and change the defaults in case you omit some arguments.
 
