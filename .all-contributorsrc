@@ -46,6 +46,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "sylvandb",
+      "name": "sylvandb",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1384297?v=4",
+      "profile": "https://github.com/sylvandb",
+      "contributions": [
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
