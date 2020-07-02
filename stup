@@ -673,7 +673,8 @@ execute_rename_category()
   fi
   resolve_required_category
 
-  if [ -e "$REPOSITORY_ROOT/$CATEGORY_NAME" ]; then
+  mkdir -p "$(dirname "$REPOSITORY_ROOT/$CATEGORY_NAME")"
+  if [ -e "$REPOSITORY_ROOT/$CATEGORY_NAME" ] && ! [ -z "$(ls -A "$REPOSITORY_ROOT/$CATEGORY_NAME")" ]; then
     print_error "Category can't be renamed, new location in filesystem is already in use"
     exit 1
   fi
