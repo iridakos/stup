@@ -137,6 +137,9 @@ execute()
     copy)
       execute_copy
       ;;
+    rename_category)
+      execute_rename_category
+      ;;
     version)
       execute_version
       ;;
@@ -661,6 +664,32 @@ execute_search()
   fi
 }
 
+# Renames a category
+execute_rename_category()
+{
+  if [ -z "$CATEGORY_NAME" ]; then
+    print_error "Missing required argument: new category name (--category-name)"
+    exit 1
+  fi
+  resolve_required_category
+
+  mkdir -p "$(dirname "$REPOSITORY_ROOT/$CATEGORY_NAME")"
+  if [ -e "$REPOSITORY_ROOT/$CATEGORY_NAME" ] && ! [ -z "$(ls -A "$REPOSITORY_ROOT/$CATEGORY_NAME")" ]; then
+    print_error "Category can't be renamed, new location in filesystem is already in use"
+    exit 1
+  fi
+  mv "$REPOSITORY_ROOT/$CATEGORY" "$REPOSITORY_ROOT/$CATEGORY_NAME"
+  # Rename the category, including subcategories
+  sed -i -e 's/^'"$(sed_escape "$CATEGORY")"'/'"$(sed_escape "$CATEGORY_NAME")"'/g' "$(resolve_categories_configuration_file)"
+
+  if [ "$CATEGORY" = "$DEFAULT_CATEGORY" ]; then
+    DEFAULT_CATEGORY="$CATEGORY_NAME"
+    store_configuration
+  fi
+
+  print_success "Successfully renamed category \"$CATEGORY\" to \"$CATEGORY_NAME\""
+}
+
 # Prints usage information
 execute_usage()
 {
@@ -673,7 +702,7 @@ execute_usage()
       add|show|edit|configure|log|search|version)
         output=$("show_usage_$COMMAND")
         ;;
-      add-category|list-categories|set-category-description|order-categories)
+      add-category|list-categories|set-category-description|order-categories|rename-category)
         output=$("show_usage_$(echo "$COMMAND" | sed 's/\-/_/g')")
         ;;
       *)
@@ -804,6 +833,10 @@ parse_options()
         ;;
       --list-categories|list-categories|categories)
         COMMAND="list_categories"
+        shift
+        ;;
+      --rename-category|rename-category)
+        COMMAND="rename_category"
         shift
         ;;
       --category-name)
@@ -1389,6 +1422,12 @@ trim() {
   printf '%s' "$var"
 }
 
+# Escapes string for use in sed expression
+# https://unix.stackexchange.com/q/32907#comment-491211 (comment on the question)
+sed_escape() {
+  echo $1 | sed -r 's/([\$\.\*\/\[\\^])/\\\1/g' | sed 's/[]]/\[]]/g'
+}
+
 #################
 # Usage helpers #
 #################
@@ -1396,6 +1435,7 @@ trim() {
 # Shows usage for all commands
 show_usage_all()
 {
+  # TODO: DRY
   echo -e "usage: stup command [<options>]"
   echo -e "List of availabe commands:\n"
 
@@ -1436,6 +1476,10 @@ show_usage_all()
   echo ""
   echo -e "$(emphasize "order-categories")"
   echo -e "$(show_usage_order_categories)" | sed -e 's/^/  /'
+
+  echo ""
+  echo -e "$(emphasize "rename-category")"
+  echo -e "$(show_usage_rename_category)" | sed -e 's/^/  /'
 
   echo ""
   echo -e "$(emphasize "usage")"
@@ -1670,6 +1714,19 @@ usage: stup order-categories\n"
   echo -e "This command doesn't have any options."
   echo -e "Changing the order of the categories inside the file will change the order that"
   echo -e "stup uses to display the notes."
+}
+
+# Shows usage for the rename category command
+show_usage_rename_category()
+{
+  echo -e "Renames a category (and all of its subcategories).
+usage: stup rename-category [<options>]\n"
+
+  printf "\n%25s   %s" "-c, --category"         "Specifies the old name of the category to rename"
+  printf "\n%25s   %s" " "                      "If omitted, stup will rename the default category"
+  printf "\n%25s   %s" " "                      "Example: stup rename-category -c \"todo\""
+  printf "\n%25s   %s" "--category-name"        "Specifies the new name of the category"
+  printf "\n%25s   %s" " "                      "Example: stup rename-category --category-name \"ideas\""
 }
 
 # Shows usage for the list categories command
