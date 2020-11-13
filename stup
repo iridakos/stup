@@ -1435,59 +1435,17 @@ sed_escape() {
 # Shows usage for all commands
 show_usage_all()
 {
-  # TODO: DRY
+  local COMMANDS=(show add edit copy log search add-category list-categories
+    set-category-description order-categories rename-category usage version)
+
   echo -e "usage: stup command [<options>]"
-  echo -e "List of availabe commands:\n"
+  echo -e "List of availabe commands:"
 
-  echo -e "$(emphasize "show")"
-  echo -e "$(show_usage_show)" | sed -e 's/^/  /'
-  echo ""
-  echo -e "$(emphasize "add")"
-  echo -e "$(show_usage_add)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "edit")"
-  echo -e "$(show_usage_edit)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "copy")"
-  echo -e "$(show_usage_copy)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "log")"
-  echo -e "$(show_usage_log)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "search")"
-  echo -e "$(show_usage_search)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "add-category")"
-  echo -e "$(show_usage_add_category)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "list-categories")"
-  echo -e "$(show_usage_list_categories)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "set-category-description")"
-  echo -e "$(show_usage_set_category_description)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "order-categories")"
-  echo -e "$(show_usage_order_categories)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "rename-category")"
-  echo -e "$(show_usage_rename_category)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "usage")"
-  echo -e "$(show_usage_usage)" | sed -e 's/^/  /'
-
-  echo ""
-  echo -e "$(emphasize "version")"
-  echo -e "$(show_usage_version)" | sed -e 's/^/  /'
+  for COMMAND in "${COMMANDS[@]}"; do
+    echo ""
+    echo -e "$(emphasize "$COMMAND")"
+    echo -e "$(show_usage_$(echo "$COMMAND" | sed 's/\-/_/g'))" | sed -e 's/^/  /'
+  done
 }
 
 # Shows usage for the show command
