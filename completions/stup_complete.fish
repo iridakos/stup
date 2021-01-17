@@ -22,7 +22,7 @@ complete -c stup -n "not __fish_seen_subcommand_from $commands" -x -a "$commands
 # default `add` behaviour with no subcommands
 complete -c stup -n "not __fish_seen_subcommand_from $commands" -s "@" -l at -d "Note timestamp"
 complete -c stup -n "not __fish_seen_subcommand_from $commands" -s c -l category -a "(cat $category_dir/categories.conf)"
-complete -c stup -n "not __fish_seen_subcommand_from $commands" -s n -l note
+complete -c stup -n "not __fish_seen_subcommand_from $commands" -s n -l note -d "Note content"
 
 # version and help
 complete -c stup -s v -l version -d "Print current version"
