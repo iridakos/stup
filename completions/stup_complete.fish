@@ -10,8 +10,8 @@ set -l cat_commands show add edit copy log search set-category rename-category
 set -l name_cat_commands add-category rename-category
 set -l desc_cat_commands add-category set-category
 
-# read category file path from config
-cat "$HOME/.config/stup.conf" | read -d = -l _ category_dir
+# read category file path from config. default to ~/stup
+cat "$HOME/.config/stup.conf" 2> /dev/null | read -d = -l _ category_dir ; or set -l category_dir "$HOME/stup"
 
 # disable file completions
 complete -c stup -f
