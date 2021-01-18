@@ -1,17 +1,17 @@
 #!/usr/bin/env fish
 
 set -l times week month year previous-week previous-month previous-year
-set -l commands show add edit copy log search add-category list-category set-category order-category rename-category usage
+set -l commands show add edit copy log search add-category list-categories set-category-description order-categories rename-category usage version
 set -l paged_commands log usage
 set -l note_commands add
-set -l dated_commands show add  edit
+set -l dated_commands show add edit
 set -l ranged_commands copy log search
-set -l cat_commands show add edit copy log search set-category rename-category
+set -l cat_commands show add edit copy log search set-category-description rename-category
 set -l name_cat_commands add-category rename-category
-set -l desc_cat_commands add-category set-category
+set -l desc_cat_commands add-category set-category-description
 
 # read category file path from config. default to ~/stup
-cat "$HOME/.config/stup.conf" 2> /dev/null | read -d = -l _ category_dir ; or set -l category_dir "$HOME/stup"
+cat "$XDG_CONFIG_HOME/stup.conf" 2> /dev/null | read -d = -l _ category_dir ; or set -l category_dir "$HOME/stup"
 
 # disable file completions
 complete -c stup -f
@@ -29,7 +29,7 @@ complete -c stup -s v -l version -d "Print current version"
 complete -c stup -s h -l help
 
 # @/at options
-complete -c stup -n "__fish_seen_subcommand_from $dated_commands"  -s "@" -l at -d "Note timestamp"
+complete -c stup -n "__fish_seen_subcommand_from $dated_commands" -s "@" -l at -d "Note timestamp"
 
 # from/to options
 complete -c stup -n "__fish_seen_subcommand_from $ranged_commands" -s f -l from
