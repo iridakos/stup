@@ -75,7 +75,7 @@ stup()
   resolve_configuration_file
   parse_options "$@"
 
-  if [ "$COMMAND" != "configure" ] && [ "$USAGE" != "true" ]; then
+  if [ "$COMMAND" != "configure" ] && [ "$USAGE" != "true" ] && [ "$COMMAND" != "version" ]; then
     ensure_configured
     load_configuration
   fi
