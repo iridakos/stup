@@ -261,7 +261,7 @@ $ stup log previous-week
 The full version of the command:
 
 ```bash
-$ stup log --from <from-date> --to <to-date> -c <category-name>
+$ stup log [--from <from-date>] [--to <to-date>] [--days <days-before/after>] [-c <category-name>]
 
 # or using an alias
 
@@ -276,6 +276,7 @@ where:
   - this is also optional and if omitted the notes to be displayed won't have be **added before a specific date**
 * `-c` or `--category`: is the category option (optional). **If omitted, you will view the notes of all categories**
   * `<category-name>`: the name of the category whose notes you want to see
+* `days-before/after`: When used with `--from` or `--to`, denotes how many days after or before that date should be logged; when used alone, that many last days with notes are shown.
 
 In the second version of the command, you can use the temporal aliases that will be translated to proper from/to dates.
 
@@ -301,6 +302,18 @@ $ stup log previous-week
 # or
 
 $ stup previous-week
+```
+
+##### Log notes of the last X days, where notes exist
+
+```bash
+# Log notes of the last 3 days
+$ stup log --days 3
+```
+
+```bash
+# Log notes for the category "meetings", of the last 2 days
+$ stup log -c "meetings" --days 2
 ```
 
 ##### Log of notes added in a specific period
@@ -331,6 +344,26 @@ $ stup log --from 2020-01-15 -c blocking
 # or
 
 $ stup --from 2020-01-15 -c blocking
+```
+
+##### Log of notes added after a specific date and for a specified number of days
+
+```bash
+$ stup log --from 2020-01-15 --days 4
+
+# or
+
+$ stup --from 2020-01-15 --days 4
+```
+
+##### Log of notes added up until a specific date going back a specified number of days
+
+```bash
+$ stup log --to 2020-02-01 --days 4
+
+# or
+
+$ stup --to 2020-02-01 --days 4
 ```
 
 ### Search notes
