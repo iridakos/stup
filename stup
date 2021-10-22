@@ -55,6 +55,7 @@ VERSION="v1.0.0"
 # Some defaults (can be changed from configuration file)
 DEFAULT_COMMAND="show"
 DEFAULT_SHOW_AT="yesterday"
+DEFAULT_LOG_DAYS=2
 DEFAULT_ADD_AT="today"
 DEFAULT_EDIT_AT="today"
 DEFAULT_COPY_TO="today"
@@ -501,27 +502,53 @@ execute_log()
     exit
   fi
 
-  if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
-    echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
-    target_command="sed -n "/$FROM_AT/,/$TO_AT/p""
-  elif ! [ -z "$FROM_AT" ]; then
-    echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "and after")"
-    target_command="sed -n "/$FROM_AT/,//p""
-  elif ! [ -z "$TO_AT" ]; then
-    echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
-    target_command="sed "/$TO_AT/q""
-  else
-    # TODO: we should prompt for confirmation here: "Are you sure you want to view all of your notes?"
-    echo -e "$(print_info "Displaying all notes")"
-    target_command='tr -d ""'
+  if [ -n "$FROM_AT" ] && [ -n "$TO_AT" ] && [ -n "$DAYS" ]; then
+    print_error "You can use any pair of [\"--from\", \"--to\", \"--days\"], but not all three"
+    exit 1
   fi
 
-  IFS=$'\n' read -d '' dates < <(
-    echo -e "$FROM_AT\n$TO_AT\n$(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md")" |
-    sed -e 's/.*\///' -e 's/\.[^.]*$//' |
-    sort -u |
-    $target_command
-  )
+  # Get the dates by which to filter
+  if [ -n "$DAYS" ] && [ -z "$FROM_AT" ] && [ -z "$TO_AT" ]; then
+    echo -e "$(print_info "Displaying notes for the last ${DAYS} days when notes exist")"
+
+    if [[ $CATEGORY ]]; then
+      target_path="$REPOSITORY_ROOT/$CATEGORY/"
+    else
+      target_path="$REPOSITORY_ROOT/"
+    fi
+
+    IFS=$'\n' read -r -d '' -a dates < <(find "$target_path" -type f | grep -Po '[0-9]{4}-[0-9]{2}-[0-9]{2}(?=\.md$)' | sort | uniq | tail -"$DAYS")
+  else
+    if [ -n "$DAYS" ]; then
+      if [ -n "$FROM_AT" ] && [ -z "$TO_AT" ]; then
+        TO_AT="$(date -d "$FROM_AT +$DAYS days" '+%F')"
+      elif [ -n "$TO_AT" ] && [ -z "$FROM_AT" ]; then
+        FROM_AT="$(date -d "$TO_AT $DAYS days ago" '+%F')"
+      fi
+    fi
+
+    if (! [ -z "$FROM_AT" ] && ! [ -z "$TO_AT" ]); then
+      echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "to") $(display_date "$TO_AT")"
+      target_command="sed -n "/$FROM_AT/,/$TO_AT/p""
+    elif ! [ -z "$FROM_AT" ]; then
+      echo -e "$(print_info "Displaying notes from") $(display_date "$FROM_AT") $(print_info "and after")"
+      target_command="sed -n "/$FROM_AT/,//p""
+    elif ! [ -z "$TO_AT" ]; then
+      echo -e "$(print_info "Displaying notes until") $(display_date "$TO_AT")"
+      target_command="sed "/$TO_AT/q""
+    else
+      # TODO: we should prompt for confirmation here: "Are you sure you want to view all of your notes?"
+      echo -e "$(print_info "Displaying all notes")"
+      target_command='tr -d ""'
+    fi
+
+    IFS=$'\n' read -d '' dates < <(
+      echo -e "$FROM_AT\n$TO_AT\n$(find $REPOSITORY_ROOT -path "$REPOSITORY_ROOT/*/*/*/*.md")" |
+      sed -e 's/.*\///' -e 's/\.[^.]*$//' |
+      sort -u |
+      $target_command
+    )
+  fi
 
   local target_categories
 
@@ -789,6 +816,18 @@ parse_options()
           COMMAND="log"
         fi
         shift 2
+        ;;
+      --days)
+        if [ -z "$COMMAND" ]; then
+          COMMAND="log"
+        fi
+        if [ -z "$2" ]; then
+          DAYS="$DEFAULT_LOG_DAYS"
+          shift
+        else
+          DAYS="$2"
+          shift 2
+        fi
         ;;
       --add|add)
         COMMAND="add"
@@ -1095,6 +1134,9 @@ handle_configuration_variable()
     default_show_at)
       DEFAULT_SHOW_AT="$2"
       ;;
+    default_log_days)
+      DEFAULT_LOG_DAYS="$2"
+      ;;
     default_add_at)
       DEFAULT_ADD_AT="$2"
       ;;
@@ -1127,6 +1169,7 @@ default_category=$DEFAULT_CATEGORY
 stup_editor=$STUP_EDITOR
 default_command=$DEFAULT_COMMAND
 default_show_at=$DEFAULT_SHOW_AT
+default_log_days=$DEFAULT_LOG_DAYS
 default_add_at=$DEFAULT_ADD_AT
 default_edit_at=$DEFAULT_EDIT_AT
 default_copy_from=$DEFAULT_COPY_FROM
@@ -1577,6 +1620,9 @@ List of available options:"
   printf "\n%15s   %s" " "               "Examples:"
   printf "\n%15s   %s" " "               "  stup log --from today --to 2020-08-10"
   printf "\n%15s   %s" " "               "  stup log --from 2019-04-18 --to today"
+  printf "\n%15s   %s" "--days"          "Shows the notes of the last <days> days with notes."
+  printf "\n%15s   %s" ""                "When used with --from or --to, denotes how many days"
+  printf "\n%15s   %s" ""                "after or before that date should be logged."
   printf "\n%15s   %s" "week"            "Alias to list the notes of current week"
   printf "\n%15s   %s" " "               "Example: stup log week"
   printf "\n%15s   %s" "previous-week"   "Alias to list the notes of previous week"
