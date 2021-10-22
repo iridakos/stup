@@ -777,6 +777,11 @@ parse_options()
         shift
         ;;
       --from)
+        if [ -z "$2" ]; then
+          print_error "Flag \"--from\" was present but no \"from\" argument was passed"
+          exit 1
+        fi
+
         FROM_AT="$2"
         if [ -z "$COMMAND" ]; then
           COMMAND="log"
@@ -784,6 +789,11 @@ parse_options()
         shift 2
         ;;
       --to)
+        if [ -z "$2" ]; then
+          print_error "Flag \"--to\" was present but no \"to\" argument was passed"
+          exit 1
+        fi
+
         TO_AT="$2"
         if [ -z "$COMMAND" ]; then
           COMMAND="log"
@@ -807,6 +817,11 @@ parse_options()
         shift
         ;;
       @|-@|--at)
+        if [ -z "$2" ]; then
+          print_error "Flag \"@/--at\" was present but no \"@/at\" argument was passed"
+          exit 1
+        fi
+
         AT="$2"
         shift 2
         ;;
@@ -840,10 +855,20 @@ parse_options()
         shift
         ;;
       --category-name)
+        if [ -z "$2" ]; then
+          print_error "Flag \"--category-name\" was present but no \"category-name\" argument was passed"
+          exit 1
+        fi
+
         CATEGORY_NAME="$2"
         shift 2
         ;;
       --category-description)
+        if [ -z "$2" ]; then
+          print_error "Flag \"--category-description\" was present but no \"category-description\" argument was passed"
+          exit 1
+        fi
+
         CATEGORY_DESCRIPTION="$2"
         shift 2
         ;;
@@ -860,6 +885,11 @@ parse_options()
         shift 2
         ;;
       -n|--note)
+        if [ -z "$2" ]; then
+          print_error "Flag \"--note\" was present but no \"note\" argument was passed"
+          exit 1
+        fi
+
         NOTES+=("$2")
         shift 2
         ;;
@@ -886,6 +916,11 @@ parse_options()
         shift
         ;;
       --pager)
+        if [ -z "$2" ]; then
+          print_error "Flag \"--pager\" was present but no \"pager\" argument was passed"
+          exit 1
+        fi
+
         PAGER_SWITCH="$2"
         shift 2
         ;;
