@@ -549,6 +549,19 @@ $ stup copy --from 2020-01-15 --to 2020-02-01
 $ stup copy --to tomorrow -c blocking
 ```
 
+If no notes are found on the `--from` date, stup will prompt the user to copy from the last date before that date:
+```
+Failed to find notes for category personal on Thursday March 24, 2022. Looked up for file: /path/to/.stup/personal/2022/03/2022-03-24.md
+Do you want to copy the last notes added in this category before Thursday March 24, 2022 with stup? (y/n) y
+About to copy notes from Wednesday March 23, 2022 to Friday March 25, 2022 for category personal
+
+- Worked on some PRs
+
+
+>>> Copy this note [y,n,q,a]?:
+```
+
+
 ### Add a new category
 
 To add a new category to save notes into use the following command.
