@@ -331,7 +331,33 @@ execute_copy()
 
   if ! [ -s "$copy_from_file" ]; then
     print_error "Failed to find notes for category $CATEGORY on $(display_date $FROM_AT). Looked up for file: $copy_from_file"
-    exit 1
+    read -e -p "Do you want to copy the last notes added in this category before $(display_date $FROM_AT) with stup? (y/n) " copy_from_last_entries
+
+    if [ "$(resolve_boolean "$copy_from_last_entries")" = "true" ]; then
+      if [[ $CATEGORY ]]; then
+        copy_from_root_path="$REPOSITORY_ROOT/$CATEGORY"
+      else
+        copy_from_root_path="$REPOSITORY_ROOT"
+      fi
+
+      # Find last date before the copy_from_date given
+      IFS=$'\n' read -r -d '' -a date < <(find "$copy_from_root_path" -type f | grep -Po '[0-9]{4}-[0-9]{2}-[0-9]{2}(?=\.md$)' | awk -v date="$FROM_AT" '$1 < date { print }' | sort | uniq | tail -1)
+
+      if [ -z "$date" ]; then
+        print_error "Failed to find notes for category $CATEGORY before $(display_date $FROM_AT)."
+        exit 1
+      fi
+
+      FROM_AT=$date
+
+      YEAR=$(echo $date | cut -d- -f1)
+      MONTH=$(echo $date | cut -d- -f2)
+      DAY=$(echo $date | cut -d- -f3)
+
+      copy_from_file="$copy_from_root_path/$YEAR/$MONTH/$YEAR-$MONTH-$DAY.md"
+    else
+      exit 0
+    fi
   fi
 
   if [ "$copy_from_file" = $target_file ]; then
